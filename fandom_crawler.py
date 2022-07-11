@@ -36,13 +36,16 @@ def fandom_img_crawler(link, generationName):
     while True:
         if threading.active_count() == 1:
             break
-    # Generate dump to stdout to copy to txt, for use with tabletop_name_import.py
-    # TODO: Auto create the .txt file in decks
+    # Auto create the .txt file in decks
+    txtPrint = sorted(txtPrint)
     filename = "decks/" + generationName + ".txt"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w") as txtFile:
-        for card in txtPrint:
-            txtFile.write(card + "\n")
+        for i in range(len(txtPrint)):
+            txtFile.write(txtPrint[i])
+            if i < len(txtPrint) - 1:
+                txtFile.write("\n")
+        txtFile.close()
 
 
 def fandom_scrape_png(cardName, link, generationName):
