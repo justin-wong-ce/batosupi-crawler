@@ -1,4 +1,4 @@
-# batosupi-crawler v0.0.1
+# batosupi-crawler v0.0.2
 Image crawler + Tabletop Simulator importer for battle spirits
 
 ## Pre-requisites
