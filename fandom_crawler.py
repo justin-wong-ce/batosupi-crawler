@@ -24,14 +24,15 @@ def fandom_img_crawler(link, generationName):
                 cardName.find("SD") == -1 and \
                 cardName.find("PC") == -1 and \
                 cardName.find("CP") == -1 and \
-                cardName.find("CB") == -1 :
+                cardName.find("CB") == -1:
             # Append generation name as default
             cardName = generationName + "-" + cardName
 
         threading.Thread(target=fandom_scrape_png, args=(cardName, rows[i][1], generationName)).start()
         # fandom_scrape_png(cardName, rows[i][1]) # Uncomment this for single thread execution
 
-        txtPrint.append(cardName)
+        if cardName not in txtPrint:
+            txtPrint.append(cardName)
 
     # Wait for threads to be done
     while True:
