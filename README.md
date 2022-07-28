@@ -1,7 +1,7 @@
 # batosupi-crawler v0.0.1
 Image crawler + Tabletop Simulator importer for battle spirits
 
-## Pre-reqs
+## Pre-requisites
 - Python >= 3.2, >= 3.7 is recommended 
 - Tabletop Simulator (Only for importing to Tabletop Simulator)
 - TS-DeckBuilder.exe, located in `YOUR_TABLETOP_INSTALLATION_FOLDER/Modding/` (Only for importing to Tabletop Simulator)
