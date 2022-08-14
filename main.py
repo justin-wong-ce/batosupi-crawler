@@ -1,7 +1,7 @@
 import fandom_crawler
 import tabletop_name_import
 
-print("Battle Spirits card importer v0.0.2")
+print("Battle Spirits card importer v0.0.3")
 while True:
     print("Download card images from fandom: [D/d]")
     print("Load card names onto cards: [L/l]")
