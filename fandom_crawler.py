@@ -11,7 +11,7 @@ def fandom_img_crawler(link, generationName):
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX)?\d?\d\d)?)\s</td>\s<td><a href=\"([^\"]*)\"")
+        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"")
     rows = re.findall(pattern, htmlText)
 
     # For each card, scrape page for png url
@@ -23,13 +23,11 @@ def fandom_img_crawler(link, generationName):
                 cardName.find("BSC") == -1 and \
                 cardName.find("SD") == -1 and \
                 cardName.find("PC") == -1 and \
-                cardName.find("CP") == -1 and \
                 cardName.find("CB") == -1:
             # Append generation name as default
             cardName = generationName + "-" + cardName
-
         threading.Thread(target=fandom_scrape_png, args=(cardName, rows[i][1], generationName)).start()
-        # fandom_scrape_png(cardName, rows[i][1]) # Uncomment this for single thread execution
+        # fandom_scrape_png(cardName, rows[i][1], generationName)    # Uncomment this for single thread execution
 
         if cardName not in txtPrint:
             txtPrint.append(cardName)
