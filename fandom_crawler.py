@@ -2,6 +2,7 @@ import threading
 import requests
 import re
 import os
+import time
 
 
 # JPG DL FOR FANDOM
@@ -11,13 +12,20 @@ def fandom_img_crawler(link, generationName):
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"")
+        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
     rows = re.findall(pattern, htmlText)
 
     # For each card, scrape page for png url
     txtPrint = []
     for i in range(len(rows)):
+        # Wait 5 seconds for each 50 requests
+        if i != 0 and i % 50 == 0:
+            time.sleep(5)
+
         cardName = rows[i][0]
+        print(rows[i][2])
+        haveRevival = rows[i][2].find("Revival") != -1
+
         # BSC|BS|SD|PC|CP|TCP|TX|XX|RV
         if cardName.find("BS") == -1 and \
                 cardName.find("BSC") == -1 and \
@@ -26,7 +34,7 @@ def fandom_img_crawler(link, generationName):
                 cardName.find("CB") == -1:
             # Append generation name as default
             cardName = generationName + "-" + cardName
-        threading.Thread(target=fandom_scrape_png, args=(cardName, rows[i][1], generationName)).start()
+        threading.Thread(target=fandom_scrape_png, args=(cardName, rows[i][1], generationName, haveRevival)).start()
         # fandom_scrape_png(cardName, rows[i][1], generationName)    # Uncomment this for single thread execution
 
         if cardName not in txtPrint:
@@ -48,9 +56,9 @@ def fandom_img_crawler(link, generationName):
         txtFile.close()
 
 
-def fandom_scrape_png(cardName, link, generationName):
-    # Use batspi for RV cards
-    if cardName.find("RV") != -1:
+def fandom_scrape_png(cardName, link, generationName, explicitRevival):
+    # Use batspi for RV cards + BSC22
+    if cardName.find("RV") != -1 or generationName == "BSC22" or explicitRevival:
         batspi_scrape_png(cardName, generationName)
     else:
         # Use fandom to get img
@@ -64,10 +72,10 @@ def fandom_scrape_png(cardName, link, generationName):
 
         try:
             pngLink = results[0]
-            # download
+            # Download
             download_save(pngLink, cardName, generationName)
         except IndexError:
-            # fallback to batspi
+            # Fallback to batspi
             batspi_scrape_png(cardName, generationName)
 
 

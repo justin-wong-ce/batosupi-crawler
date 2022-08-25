@@ -1,4 +1,4 @@
-# batosupi-crawler v0.0.3
+# batosupi-crawler v0.0.4
 Image crawler + Tabletop Simulator importer for battle spirits
 
 ## Pre-requisites
@@ -18,7 +18,7 @@ Download/clone the repo
 2. Choose operation. We need to download the images of the cards first, so input `D` or `d`
 3. Enter the generation name of the cards you want to import (i.e. BS60, BSC39) and press Enter
     ```
-    Battle Spirits card importer v0.0.2
+    Battle Spirits card importer v0.0.4
     Download card images from fandom: [D/d]
     Load card names onto cards: [L/l]
     Choice: d
@@ -26,7 +26,7 @@ Download/clone the repo
     Continue? [(Y/y)/(N/n)]: 
     ```
 
-4. When cards are done downloading, they are saved in the `./downloads/GENERATION_NAME/assets` folder, open this folder
+4. When cards are done downloading, they are saved in the `./downloads/GENERATION_NAME/assets` folder, open this folder and check for bad images
 5. (Continue if you are importing to Tabletop Simulator) Open the deck builder, drag all the downloaded images into it.
 6. In the deck builder, export the deck as a `.png` file. If there are more than 69 cards, there will be multiple tabs in the deck builder and you have to export multiple `.png` files and retain the order of the `.png` (**Order: Ascending alphabetical order**)
 
