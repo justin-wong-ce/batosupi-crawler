@@ -23,7 +23,6 @@ def fandom_img_crawler(link, generationName):
             time.sleep(5)
 
         cardName = rows[i][0]
-        print(rows[i][2])
         haveRevival = rows[i][2].find("Revival") != -1
 
         # BSC|BS|SD|PC|CP|TCP|TX|XX|RV
