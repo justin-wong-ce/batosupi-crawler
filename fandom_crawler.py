@@ -12,7 +12,7 @@ def fandom_img_crawler(link, generationName):
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
+        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX|G)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
     rows = re.findall(pattern, htmlText)
 
     # For each card, scrape page for png url
@@ -30,6 +30,7 @@ def fandom_img_crawler(link, generationName):
                 cardName.find("BSC") == -1 and \
                 cardName.find("SD") == -1 and \
                 cardName.find("PC") == -1 and \
+                cardName.find("PB") == -1 and \
                 cardName.find("CB") == -1:
             # Append generation name as default
             cardName = generationName + "-" + cardName
