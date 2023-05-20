@@ -12,7 +12,7 @@ def fandom_img_crawler(link, generationName):
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX|G|XV)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
+        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB|RVX)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX|G|XV)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
     rows = re.findall(pattern, htmlText)
 
     # For each card, scrape page for png url
