@@ -36,5 +36,5 @@ for deck in tt_dict["ObjectStates"]:
                 card['Description'] = card_effect[nickname[0]+"-"+nickname[1].zfill(3)]
                 
 
-with open('{userSavesPath}TS_Save_1.json', 'w', encoding='utf-8') as file:
+with open(f'{userSavesPath}TS_Save_1.json', 'w', encoding='utf-8') as file:
     json.dump(tt_dict, file, ensure_ascii=False, indent=4)
