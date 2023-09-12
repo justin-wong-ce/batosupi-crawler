@@ -169,19 +169,19 @@ def batspi_scrape_png(cardName, generationName):
 
     download_save(batspiLink, cardName, generationName)
 
-
+# Quick Tests
 # fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_", "BSC18")
 # batspi_scrape_png("BS48-RV007", "BS48")
 # print("\n\ntest 1: spirit - burst Alex:\n")
-fandom_scrape_png("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
+# fandom_scrape_png("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
 # fandom_effect_crawler("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
 # print("\n\ntest 2: magic - brave draw:\n")
-fandom_scrape_png("BS48-RV007", "/wiki/Brave_Draw", "BS48")
+# fandom_scrape_png("BS48-RV007", "/wiki/Brave_Draw", "BS48")
 # fandom_effect_crawler("BS48-RV007", "/wiki/Brave_Draw", "BS48")
 # print("\n\ntest 3: grandwalker nexus: mai:\n")
-fandom_scrape_png("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
+# fandom_scrape_png("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
 # fandom_effect_crawler("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
 
 
 # fandom_effect_crawler("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
-fandom_scrape_png("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
+# fandom_scrape_png("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
