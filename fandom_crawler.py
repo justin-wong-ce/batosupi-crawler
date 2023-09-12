@@ -1,12 +1,12 @@
+import fileinput
 import threading
 import requests
 import re
 import os
 import time
 
-
 # JPG DL FOR FANDOM
-def fandom_img_crawler(link, generationName):
+def fandom_crawler(link, generationName):
     # Scrape link for links to individual cards
     htmlText = requests.get(link).text
 
@@ -23,7 +23,7 @@ def fandom_img_crawler(link, generationName):
             time.sleep(5)
 
         cardName = rows[i][0]
-        haveRevival = rows[i][2].find("Revival") != -1
+        # haveRevival = rows[i][2].find("Revival") != -1
 
         # BSC|BS|SD|PC|CP|TCP|TX|XX|RV
         if cardName.find("BS") == -1 and \
@@ -34,7 +34,7 @@ def fandom_img_crawler(link, generationName):
                 cardName.find("CB") == -1:
             # Append generation name as default
             cardName = generationName + "-" + cardName
-        threading.Thread(target=fandom_scrape_png, args=(cardName, rows[i][1], generationName, haveRevival)).start()
+        threading.Thread(target=fandom_scrape_png, args=(cardName, rows[i][1], generationName)).start()
         # fandom_scrape_png(cardName, rows[i][1], generationName)    # Uncomment this for single thread execution
 
         if cardName not in txtPrint:
@@ -55,10 +55,56 @@ def fandom_img_crawler(link, generationName):
                 txtFile.write("\n")
         txtFile.close()
 
+# DOM Element Remove
+def filter_dom(instr):
+    ret = ""
+    ind = 0
+    while ind < len(instr):
+        # turn <br> into newlines
+        if instr[ind:ind+4] == "<br>":
+            ret = ret + "\n"
+            ind = ind + 4
+        # remove all HTML or DOM elements, effect text is never wrapped in angled brackets
+        elif instr[ind] == "<":
+            ind = instr[ind:].index(">") + ind + 1
+        elif instr[ind:ind+4] == "&amp;":
+            ret = ret + "&"
+        else:
+            ret = ret + instr[ind]
+            ind = ind + 1
+    return ret
 
-def fandom_scrape_png(cardName, link, generationName, explicitRevival):
+
+# ENG EFFECT CRAWLER
+def fandom_effect_crawler(cardName, link, generationName):
+    link = "https://battle-spirits.fandom.com" + link
+    htmlText = requests.get(link).text
+
+    # regex pattern and parse
+    if cardName.find("RV") != -1:
+        # Fandom's revival card pages has 2 sets of card effects, need the one on the bottom
+        pattern = re.compile(
+            r"Kanji[\S\s]*Kanji[\S\s]*<th>Card Effects[\s]*.*[\s]*.*[\s]*(.*)[\S\s]*Card Effects \(JP/日本語\)"
+        )
+    else:
+        pattern = re.compile(
+            r"Kanji[\S\s]*<th>Card Effects[\s]*.*[\s]*.*[\s]*(.*)[\S\s]*Card Effects \(JP/日本語\)"
+        )
+    results = re.findall(pattern, htmlText)
+
+    if len(results) == 0:
+        # Might be due to earlier cards having different DOM layout (BS01-BS10), retry
+        pattern = re.compile(
+            r"Jap Version.*wds-is-current\"><p>(.*)"
+        )
+    results = re.findall(pattern, htmlText)
+    print(filter_dom(results[0]))
+
+    # TODO: Export to proper JSON for lua script
+
+def fandom_scrape_png(cardName, link, generationName):
     # Use batspi for RV cards + BSC22
-    if cardName.find("RV") != -1 or generationName == "BSC22" or explicitRevival:
+    if generationName == "BSC22":
         batspi_scrape_png(cardName, generationName)
     else:
         # Use fandom to get img
@@ -67,7 +113,8 @@ def fandom_scrape_png(cardName, link, generationName, explicitRevival):
 
         # regex pattern and parse
         pattern = re.compile(
-            r"<meta property=\"og:image\" content=\"(https://static.wikia.nocookie.net/battle-spirits/images/[^\"]*.(?:jpg|png))")
+            r"<meta property=\"og:image\" content=\"(https://static.wikia.nocookie.net/battle-spirits/images"
+            r"/[^\"]*.(?:jpg|png))")
         results = re.findall(pattern, htmlText)
 
         try:
@@ -112,3 +159,12 @@ def batspi_scrape_png(cardName, generationName):
 
 # fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_")
 # batspi_scrape_png("BS48-RV007", "BS48")
+# print("\n\ntest 1: spirit - burst Alex:\n")
+# fandom_effect_crawler("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
+# print("\n\ntest 2: magic - brave draw:\n")
+# fandom_effect_crawler("BS48-RV007", "/wiki/Brave_Draw", "BS48")
+# print("\n\ntest 3: grandwalker nexus: mai:\n")
+# fandom_effect_crawler("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
+
+
+fandom_effect_crawler("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")

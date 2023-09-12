@@ -12,7 +12,7 @@ while True:
 
     cardGenerationName = input("Please input the card generation abbreviation (i.e. BSC28): ").upper()
     if userIn.lower() == "d":
-        fandom_crawler.fandom_img_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName, cardGenerationName)
+        fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName, cardGenerationName)
     elif userIn.lower() == "l":
         tabletop_name_import.tabletopNameImport(cardGenerationName)
 
