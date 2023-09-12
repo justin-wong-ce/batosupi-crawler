@@ -8,7 +8,17 @@ from bs4 import BeautifulSoup
 import os
 
 header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'}
-url_list = ['https://battlespiritsnova.com/search.php?input_sign=>%3D&input_cost=0']
+
+#If only need a certain generation of card translation, just enter the new generation card list form link.
+#Example: https://battlespiritsnova.com/search.php?input_set=BS65
+url_list = ['https://battlespiritsnova.com/search.php?input_sign=>%3D&input_cost=0'] 
+
+card_list = {}
+try:
+    with open(f'{os.path.dirname(os.path.realpath(__file__))}/effect_json/chinese.json', 'r', encoding='utf-8') as f:
+        card_list = json.load(f)
+except:
+    pass
 
 async def get_card(id_, effect):
     card_list.update({id_: effect})
