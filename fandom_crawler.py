@@ -6,109 +6,219 @@ import time
 
 
 # JPG DL FOR FANDOM
-def fandom_img_crawler(link, generationName):
+def fandom_crawler(link, gen_name, is_img_dl):
     # Scrape link for links to individual cards
-    htmlText = requests.get(link).text
+    html_text = requests.get(link).text
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB|RVX)\d\d\d?(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|TX|TCP|CP|CX|G|XV)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
-    rows = re.findall(pattern, htmlText)
+        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB|RVX)\d\d\d?(?: \([AB]\))?-?)?(?:("
+        r"?:X|XX|10thX|RV|TX|TCP|CP|CX|G|XV)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \("
+        r"Revival)?)")
+    rows = re.findall(pattern, html_text)
 
     # For each card, scrape page for png url
-    txtPrint = []
+    txt_print = []
     for i in range(len(rows)):
         # Wait 5 seconds for each 50 requests
         if i != 0 and i % 50 == 0:
             time.sleep(5)
 
-        cardName = rows[i][0]
-        haveRevival = rows[i][2].find("Revival") != -1
+        card_name = rows[i][0]
+        # haveRevival = rows[i][2].find("Revival") != -1
 
         # BSC|BS|SD|PC|CP|TCP|TX|XX|RV
-        if cardName.find("BS") == -1 and \
-                cardName.find("BSC") == -1 and \
-                cardName.find("SD") == -1 and \
-                cardName.find("PC") == -1 and \
-                cardName.find("PB") == -1 and \
-                cardName.find("CB") == -1:
+        if card_name.find("BS") == -1 and \
+                card_name.find("BSC") == -1 and \
+                card_name.find("SD") == -1 and \
+                card_name.find("PC") == -1 and \
+                card_name.find("PB") == -1 and \
+                card_name.find("CB") == -1:
             # Append generation name as default
-            cardName = generationName + "-" + cardName
-        threading.Thread(target=fandom_scrape_png, args=(cardName, rows[i][1], generationName, haveRevival)).start()
-        # fandom_scrape_png(cardName, rows[i][1], generationName)    # Uncomment this for single thread execution
+            card_name = gen_name + "-" + card_name
+        if is_img_dl:
+            threading.Thread(target=fandom_scrape_png, args=(card_name, rows[i][1], gen_name)).start()
+        else:
+            threading.Thread(target=fandom_scrape_effect, args=(card_name, rows[i][1])).start()
 
-        if cardName not in txtPrint:
-            txtPrint.append(cardName)
+        if card_name not in txt_print:
+            txt_print.append(card_name)
 
     # Wait for threads to be done
     while True:
         if threading.active_count() == 1:
             break
     # Auto create the .txt file in decks
-    txtPrint = sorted(txtPrint)
-    filename = "decks/" + generationName + ".txt"
+    txt_print = sorted(txt_print)
+    filename = "decks/" + gen_name + ".txt"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w") as txtFile:
-        for i in range(len(txtPrint)):
-            txtFile.write(txtPrint[i])
-            if i < len(txtPrint) - 1:
+        for i in range(len(txt_print)):
+            txtFile.write(txt_print[i])
+            if i < len(txt_print) - 1:
                 txtFile.write("\n")
         txtFile.close()
 
 
-def fandom_scrape_png(cardName, link, generationName, explicitRevival):
+# DOM Element Remove
+def filter_dom(instr):
+    ret = ""
+    ind = 0
+    after_newline = True
+    while ind < len(instr):
+        # turn <br> and </div> into newlines
+        if instr[ind:ind+4] == "<br>":
+            ret = ret + "\n"
+            ind = ind + 4
+            after_newline = True
+        elif instr[ind:ind+6] == "</div>":
+            ret = ret + "\n"
+            ind = ind + 6
+            after_newline = True
+        # remove all HTML or DOM elements, effect text is never wrapped in angled brackets
+        elif instr[ind] == "<":
+            ind = instr[ind:].index(">") + ind + 1
+        elif instr[ind:ind+4] == "&amp;":
+            ret = ret + "&"
+        elif after_newline is True:
+            if instr[ind] != " ":
+                ret = ret + instr[ind]
+                after_newline = False
+            ind = ind + 1
+        else:
+            ret = ret + instr[ind]
+            ind = ind + 1
+    return ret
+
+# Backup regex, add more as bugs occur
+reg_str = [
+    r"Jap Version.*wds-is-current\"><p>(.*)",
+    r"<i>English</i>\s*.*\s*.*\s*.*wds-is-current\"><p>(.*)",
+    r"<i>English</i>\s*.*\s*.*\s*(.*)",
+]
+# ENG EFFECT CRAWLER
+def fandom_scrape_effect(card_name, link):
+    link = "https://battle-spirits.fandom.com" + link
+    html_text = requests.get(link).text
+
+    # regex pattern and parse
+    if card_name.find("RV") != -1:
+        # Fandom's revival card pages has 2 sets of card effects, need the one on the bottom
+        pattern = re.compile(
+            r"Kanji[\S\s]*Kanji[\S\s]*<th>Card Effects\n.*[\s]*.*[\s]*(.*)[\S\s]*<th>Sets"
+        )
+    else:
+        pattern = re.compile(
+            r"Kanji[\S\s]*<th>Card Effects\n.*[\s]*.*[\s]*(.*)[\S\s]*<th>Sets"
+        )
+    results = re.findall(pattern, html_text)
+
+    ind = 0
+    while len(results) == 0 and ind < len(reg_str):
+        # Might be due to earlier cards having different DOM layout, retry
+        pattern = re.compile(
+            reg_str[ind]
+        )
+        results = re.findall(pattern, html_text)
+        ind = ind + 1
+
+    try:
+        # TODO: Export to proper JSON for lua script
+        if results[0].find("{effect}") != -1:
+            results[0] = ""
+        print(filter_dom(results[0]))
+        if results[0] == "":
+            print(card_name + "NO EFFECT")
+    except IndexError:
+        print("COULD NOT FIND EFFECT - " + card_name)
+
+
+def fandom_scrape_png(card_name, link, gen_name):
     # Use batspi for RV cards + BSC22
-    if cardName.find("RV") != -1 or generationName == "BSC22" or explicitRevival:
-        batspi_scrape_png(cardName, generationName)
+    if gen_name == "BSC22":
+        batspi_scrape_png(card_name, gen_name)
     else:
         # Use fandom to get img
         link = "https://battle-spirits.fandom.com" + link
-        htmlText = requests.get(link).text
+        html_text = requests.get(link).text
 
         # regex pattern and parse
-        pattern = re.compile(
-            r"<meta property=\"og:image\" content=\"(https://static.wikia.nocookie.net/battle-spirits/images/[^\"]*.(?:jpg|png))")
-        results = re.findall(pattern, htmlText)
+        if card_name.find("RV") != -1:
+            pattern = re.compile(
+                r"class=\"mw-headline\"[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
+                r"/[^\.]*.(?:jpg|png))[\s\S]*Kanji \(漢字\)")
+        else:
+            pattern = re.compile(
+                r"Google Tag Manager[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
+                r"/[^\.]*.(?:jpg|png))[\s\S]*Kanji \(漢字\)")
+        results = re.findall(pattern, html_text)
+
+        if len(results) == 0:
+            # Might be old website format, try another regex search
+            pattern = re.compile(
+                r"Google Tag Manager[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
+                r"/[^\.]*.(?:jpg|png)).*\s.*\s.*\s<td width=\"20%\"><b>Name")
+            results = re.findall(pattern, html_text)
 
         try:
-            pngLink = results[0]
+            png_url = results[0]
             # Download
-            download_save(pngLink, cardName, generationName)
+            download_save(png_url, card_name, gen_name)
         except IndexError:
+            print("IndexError, falling back to batspi")
             # Fallback to batspi
-            batspi_scrape_png(cardName, generationName)
+            batspi_scrape_png(card_name, gen_name)
 
 
-def download_save(image_link, name, generationName):
-    filename = "downloads/" + generationName + "/assets/" + name + ".jpg"
+def download_save(image_link, name, gen_name):
+    filename = "downloads/" + gen_name + "/assets/" + name + ".jpg"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "wb") as f:
         f.write(requests.get(image_link).content)
 
 
-def batspi_scrape_png(cardName, generationName):
-    batspiLink = "https://batspi.com/card/"
+def batspi_scrape_png(card_name, gen_name):
+    batspi_url = "https://batspi.com/card/"
 
     # Handle TX card name brackets " (A)" to "A"
-    if cardName.find(" (A)") != -1:
-        cardName = cardName[:len(cardName) - 4] + "A"
-    elif cardName.find(" (B)") != -1:
-        cardName = cardName[:len(cardName) - 4] + "B"
+    if card_name.find(" (A)") != -1:
+        card_name = card_name[:len(card_name) - 4] + "A"
+    elif card_name.find(" (B)") != -1:
+        card_name = card_name[:len(card_name) - 4] + "B"
 
     # Handle links
-    if cardName.find("SD") != -1:
-        batspiLink += "SD" + "/" + cardName + ".jpg"
-    elif cardName.find("BSC") != -1:
-        batspiLink += "BSC" + "/" + cardName + ".jpg"
-    elif cardName.find("PC") != -1:
-        batspiLink += "ETC" + "/" + cardName + ".jpg"
-    elif cardName.find("BS") != -1:
-        batspiLink += "BS" + cardName[cardName.find("BS") + 2] + "/" + cardName + ".jpg"
+    if card_name.find("SD") != -1:
+        batspi_url += "SD" + "/" + card_name + ".jpg"
+    elif card_name.find("BSC") != -1:
+        batspi_url += "BSC" + "/" + card_name + ".jpg"
+    elif card_name.find("PC") != -1:
+        batspi_url += "ETC" + "/" + card_name + ".jpg"
+    elif card_name.find("BS") != -1:
+        batspi_url += "BS" + card_name[card_name.find("BS") + 2] + "/" + card_name + ".jpg"
     else:
-        currLink = "ERROR"
+        batspi_url = "ERROR"
 
-    download_save(batspiLink, cardName, generationName)
+    download_save(batspi_url, card_name, gen_name)
 
-
-# fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_")
+# Quick Tests
+# fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_", "BSC18")
 # batspi_scrape_png("BS48-RV007", "BS48")
+
+# print("\n\ntest 1: spirit - burst Alex:\n")
+# fandom_scrape_png("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
+# fandom_scrape_effect("BS52-RV007", "/wiki/The_ChosenSearcher_Alex")
+# print("\n\ntest 2: magic - brave draw:\n")
+# fandom_scrape_png("BS48-RV007", "/wiki/Brave_Draw", "BS48")
+# fandom_scrape_effect("BS48-RV007", "/wiki/Brave_Draw")
+# print("\n\ntest 3: grandwalker nexus: mai:\n")
+# fandom_scrape_png("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
+# fandom_scrape_effect("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-")
+# print("\n\ntest 4: mirage spirit: begasusmachinebeast pegaspace:\n")
+# fandom_scrape_png("BS59-031", "/wiki/The_PegasusMachineBeast_Pegaspace", "BS59")
+# fandom_scrape_effect("BS59-031", "/wiki/The_PegasusMachineBeast_Pegaspace")
+
+# # old website test
+# fandom_scrape_effect("BS01-X01", "/wiki/The_DragonEmperor_Siegfried")
+# fandom_scrape_png("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
+# fandom_scrape_effect("BS01-041", "/wiki/Cobraiga")
+# fandom_scrape_effect("BS01-138", "/wiki/Hand_Reverse")
