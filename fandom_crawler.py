@@ -112,16 +112,29 @@ def fandom_scrape_png(cardName, link, generationName):
         htmlText = requests.get(link).text
 
         # regex pattern and parse
-        pattern = re.compile(
-            r"<meta property=\"og:image\" content=\"(https://static.wikia.nocookie.net/battle-spirits/images"
-            r"/[^\"]*.(?:jpg|png))")
+        if cardName.find("RV") != -1:
+            pattern = re.compile(
+                r"class=\"mw-headline\"[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
+                r"/[^\.]*.(?:jpg|png))[\s\S]*Kanji \(漢字\)")
+        else:
+            pattern = re.compile(
+                r"Google Tag Manager[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
+                r"/[^\.]*.(?:jpg|png))[\s\S]*Kanji \(漢字\)")
         results = re.findall(pattern, htmlText)
 
+        if len(results) == 0:
+            # Might be old website format, try another regex search
+            pattern = re.compile(
+                r"Google Tag Manager[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
+                r"/[^\.]*.(?:jpg|png)).*\s.*\s.*\s<td width=\"20%\"><b>Name")
+            results = re.findall(pattern, htmlText)
+    
         try:
             pngLink = results[0]
             # Download
             download_save(pngLink, cardName, generationName)
         except IndexError:
+            print("IndexError, falling back to batspi")
             # Fallback to batspi
             batspi_scrape_png(cardName, generationName)
 
@@ -157,14 +170,18 @@ def batspi_scrape_png(cardName, generationName):
     download_save(batspiLink, cardName, generationName)
 
 
-# fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_")
+# fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_", "BSC18")
 # batspi_scrape_png("BS48-RV007", "BS48")
 # print("\n\ntest 1: spirit - burst Alex:\n")
+fandom_scrape_png("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
 # fandom_effect_crawler("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
 # print("\n\ntest 2: magic - brave draw:\n")
+fandom_scrape_png("BS48-RV007", "/wiki/Brave_Draw", "BS48")
 # fandom_effect_crawler("BS48-RV007", "/wiki/Brave_Draw", "BS48")
 # print("\n\ntest 3: grandwalker nexus: mai:\n")
+fandom_scrape_png("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
 # fandom_effect_crawler("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
 
 
-fandom_effect_crawler("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
+# fandom_effect_crawler("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
+fandom_scrape_png("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
