@@ -2,7 +2,8 @@ import json
 import os
 
 userSavesPath = os.path.expanduser("~/Documents/My Games/Tabletop Simulator/Saves/")
-
+with open(f'{os.path.dirname(os.path.realpath(__file__))}/effect_json/chinese.json', 'r', encoding='utf-8') as f:
+    card_effect = json.load(f)
 
 def tabletopNameImport(deckName):
     # Edits Tabletop Save file to import names
@@ -45,8 +46,23 @@ def tabletopNameImport(deckName):
 
         for i in range(len(cards)):
             cards[i]["Nickname"] = file_lines[i]
-
-    new_savefile_contents = json.dumps(save_object, indent=2)
+            card_nickname = cards[i]["Nickname"]
+            if cards['Nickname'] == 'BS41-X07':
+                continue
+            nickname = card_nickname.replace("\t","")\
+                            .replace("10thX-","10thX")\
+                            .replace("X10TH","10thX")\
+                            .replace("X10TH","10thX")\
+                            .replace("RV-","RV ")
+            try:
+                cards['Description'] = card_effect[nickname]
+            except:
+                try:
+                    cards['Description'] = card_effect[nickname.replace('-','')]
+                except:
+                    nickname=nickname.split('-')
+                    cards['Description'] = card_effect[nickname[0]+"-"+nickname[1].zfill(3)]
+        new_savefile_contents = json.dumps(save_object, indent=2)
 
     wf = open(userSavesPath + "TS_Save_-.json", "w")
     wf.write(new_savefile_contents)
