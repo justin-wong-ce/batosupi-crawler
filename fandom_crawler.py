@@ -128,7 +128,7 @@ def fandom_scrape_png(cardName, link, generationName):
                 r"Google Tag Manager[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
                 r"/[^\.]*.(?:jpg|png)).*\s.*\s.*\s<td width=\"20%\"><b>Name")
             results = re.findall(pattern, htmlText)
-    
+
         try:
             pngLink = results[0]
             # Download
