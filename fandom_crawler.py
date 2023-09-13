@@ -3,43 +3,52 @@ import requests
 import re
 import os
 import time
+import json
 
 
 # JPG DL FOR FANDOM
-def fandom_crawler(link, gen_name, is_img_dl):
+def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper):
+    if not is_img_dl:
+        effect_dict = {}
+
     # Scrape link for links to individual cards
-    html_text = requests.get(link).text
+    try:
+        html_text = requests.get(link).text
+    except:
+        print("bad link")
+        return
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB|RVX)\d\d\d?(?: \([AB]\))?-?)?(?:("
-        r"?:X|XX|10thX|RV|TX|TCP|CP|CX|G|XV)?\d?\d\d)?(?: \([AB]\))?)\s</td>\s<td><a href=\"([^\"]*)\"[^/]*/a>((?: \("
-        r"Revival)?)")
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
+        r"?:X|XX|10thX|RV|TX|TCP|CP|CX|G|XV|U|D)?\d?\d\d)(?: \([AB]\))?(?:-X)?)|(?:\d\d-EXG\d\d)))\s</td>\s<td><a href=\""
+        r"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
     rows = re.findall(pattern, html_text)
 
     # For each card, scrape page for png url
     txt_print = []
     for i in range(len(rows)):
-        # Wait 5 seconds for each 50 requests
+        # Wait 1 seconds for each 50 requests
         if i != 0 and i % 50 == 0:
-            time.sleep(5)
+            time.sleep(1)
 
         card_name = rows[i][0]
         # haveRevival = rows[i][2].find("Revival") != -1
 
-        # BSC|BS|SD|PC|CP|TCP|TX|XX|RV
         if card_name.find("BS") == -1 and \
                 card_name.find("BSC") == -1 and \
                 card_name.find("SD") == -1 and \
                 card_name.find("PC") == -1 and \
                 card_name.find("PB") == -1 and \
-                card_name.find("CB") == -1:
+                card_name.find("CB") == -1 and \
+                no_name_tamper is False:
             # Append generation name as default
             card_name = gen_name + "-" + card_name
         if is_img_dl:
             threading.Thread(target=fandom_scrape_png, args=(card_name, rows[i][1], gen_name)).start()
         else:
-            threading.Thread(target=fandom_scrape_effect, args=(card_name, rows[i][1])).start()
+            # threading.Thread(target=fandom_scrape_effect, args=(card_name, rows[i][1], effect_dict)).start()
+            fandom_scrape_effect(card_name, rows[i][1], effect_dict)
 
         if card_name not in txt_print:
             txt_print.append(card_name)
@@ -48,16 +57,31 @@ def fandom_crawler(link, gen_name, is_img_dl):
     while True:
         if threading.active_count() == 1:
             break
-    # Auto create the .txt file in decks
-    txt_print = sorted(txt_print)
-    filename = "decks/" + gen_name + ".txt"
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, "w") as txtFile:
-        for i in range(len(txt_print)):
-            txtFile.write(txt_print[i])
-            if i < len(txt_print) - 1:
-                txtFile.write("\n")
-        txtFile.close()
+    
+    if is_img_dl:
+        # Auto create the .txt file in decks
+        txt_print = sorted(txt_print)
+        filename = f"{os.path.dirname(os.path.realpath(__file__))}/decks/" + gen_name + ".txt"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, "w") as txtFile:
+            for i in range(len(txt_print)):
+                txtFile.write(txt_print[i])
+                if i < len(txt_print) - 1:
+                    txtFile.write("\n")
+            txtFile.close()
+    else:
+        try:
+            with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json",
+                      "r", encoding="utf-8") as f:
+                effect_dict_curr = json.load(f)
+        except FileNotFoundError:
+            print("File not found")
+            effect_dict_curr = {}
+            pass
+        # Create the effects .json
+        effect_dict.update(effect_dict_curr)
+        with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
+            json.dump(effect_dict, f, ensure_ascii=False)
 
 
 # DOM Element Remove
@@ -96,8 +120,10 @@ reg_str = [
     r"<i>English</i>\s*.*\s*.*\s*.*wds-is-current\"><p>(.*)",
     r"<i>English</i>\s*.*\s*.*\s*(.*)",
 ]
+
+
 # ENG EFFECT CRAWLER
-def fandom_scrape_effect(card_name, link):
+def fandom_scrape_effect(card_name, link, effect_dict):
     link = "https://battle-spirits.fandom.com" + link
     html_text = requests.get(link).text
 
@@ -123,14 +149,16 @@ def fandom_scrape_effect(card_name, link):
         ind = ind + 1
 
     try:
-        # TODO: Export to proper JSON for lua script
         if results[0].find("{effect}") != -1:
             results[0] = ""
-        print(filter_dom(results[0]))
-        if results[0] == "":
-            print(card_name + "NO EFFECT")
+        # print(filter_dom(results[0]))
+        # if results[0] == "":
+        #     print(card_name + "NO EFFECT")
+        effect_dict.update({card_name: filter_dom(results[0])})
+
     except IndexError:
-        print("COULD NOT FIND EFFECT - " + card_name)
+        # print("COULD NOT FIND EFFECT - " + card_name)
+        effect_dict.update({card_name: "Should not happen - leave a comment and let us know!"})
 
 
 def fandom_scrape_png(card_name, link, gen_name):
@@ -222,3 +250,9 @@ def batspi_scrape_png(card_name, gen_name):
 # fandom_scrape_png("BS01-X01", "/wiki/The_DragonEmperor_Siegfried", "BS01")
 # fandom_scrape_effect("BS01-041", "/wiki/Cobraiga")
 # fandom_scrape_effect("BS01-138", "/wiki/Hand_Reverse")
+
+# effect_test = {}
+# fandom_scrape_effect("X13-07", "/wiki/The_JusticeHolySword_Justicesword", effect_test)
+#
+# print(effect_test)
+

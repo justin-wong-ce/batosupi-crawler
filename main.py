@@ -19,12 +19,12 @@ while True:
     cardGenerationName = input("Please input the card generation abbreviation (i.e. BSC28): ").upper()
     if userIn.lower() == "d":
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName,
-                                      cardGenerationName, True)
+                                      cardGenerationName, True, False)
     elif userIn.lower() == "l":
         tabletop_name_import.tabletopNameImport(cardGenerationName)
     else:
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName,
-                                      cardGenerationName, False)
+                                      cardGenerationName, False, False)
 
     userCont = input("Continue? [(Y/y)/(N/n)]: ")
     if userCont.lower() == "n":
