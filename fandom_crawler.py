@@ -171,11 +171,11 @@ def fandom_scrape_png(card_name, link, gen_name):
         if card_name.find("RV") != -1:
             pattern = re.compile(
                 r"class=\"mw-headline\"[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
-                r"/[^\.]*.(?:jpg|png))[\s\S]*Kanji \(漢字\)")
+                r"/[^\.]*.(?:jpg|png))[\s\S]*Card Type")
         else:
             pattern = re.compile(
                 r"Google Tag Manager[\s\S]*<a href=\"(https://static.wikia.nocookie.net/battle-spirits/images"
-                r"/[^\.]*.(?:jpg|png))[\s\S]*Kanji \(漢字\)")
+                r"/[^\.]*.(?:jpg|png))[\s\S]*Card Type")
         results = re.findall(pattern, html_text)
 
         if len(results) == 0:
