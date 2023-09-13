@@ -79,7 +79,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper):
             effect_dict_curr = {}
             pass
         # Create the effects .json
-        effect_dict.update(effect_dict_curr)
+        effect_dict_curr.update(effect_dict)
         with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
             json.dump(effect_dict, f, ensure_ascii=False)
 
@@ -128,16 +128,13 @@ def fandom_scrape_effect(card_name, link, effect_dict):
     html_text = requests.get(link).text
 
     # regex pattern and parse
-    if card_name.find("RV") != -1:
-        # Fandom's revival card pages has 2 sets of card effects, need the one on the bottom
-        pattern = re.compile(
-            r"Kanji[\S\s]*Kanji[\S\s]*<th>Card Effects\n.*[\s]*.*[\s]*(.*)[\S\s]*<th>Sets"
-        )
-    else:
-        pattern = re.compile(
-            r"Kanji[\S\s]*<th>Card Effects\n.*[\s]*.*[\s]*(.*)[\S\s]*<th>Sets"
-        )
+    pattern = re.compile(
+        r"<th>Card Effects\n.*[\s]*.*[\s]*(.*)"
+    )
     results = re.findall(pattern, html_text)
+
+    if card_name.find("RV") != -1:
+        results[0] = results[1]
 
     ind = 0
     while len(results) == 0 and ind < len(reg_str):
@@ -158,7 +155,7 @@ def fandom_scrape_effect(card_name, link, effect_dict):
 
     except IndexError:
         # print("COULD NOT FIND EFFECT - " + card_name)
-        effect_dict.update({card_name: "Should not happen - leave a comment and let us know!"})
+        effect_dict.update({card_name: "Should not happen - let us know!"})
 
 
 def fandom_scrape_png(card_name, link, gen_name):
@@ -229,6 +226,7 @@ def batspi_scrape_png(card_name, gen_name):
     download_save(batspi_url, card_name, gen_name)
 
 # Quick Tests
+effect_test = {}
 # fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_", "BSC18")
 # batspi_scrape_png("BS48-RV007", "BS48")
 
@@ -237,7 +235,7 @@ def batspi_scrape_png(card_name, gen_name):
 # fandom_scrape_effect("BS52-RV007", "/wiki/The_ChosenSearcher_Alex")
 # print("\n\ntest 2: magic - brave draw:\n")
 # fandom_scrape_png("BS48-RV007", "/wiki/Brave_Draw", "BS48")
-# fandom_scrape_effect("BS48-RV007", "/wiki/Brave_Draw")
+# fandom_scrape_effect("BS48-RV007", "/wiki/Brave_Draw", effect_test)
 # print("\n\ntest 3: grandwalker nexus: mai:\n")
 # fandom_scrape_png("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
 # fandom_scrape_effect("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-")
@@ -251,8 +249,7 @@ def batspi_scrape_png(card_name, gen_name):
 # fandom_scrape_effect("BS01-041", "/wiki/Cobraiga")
 # fandom_scrape_effect("BS01-138", "/wiki/Hand_Reverse")
 
-# effect_test = {}
-# fandom_scrape_effect("X13-07", "/wiki/The_JusticeHolySword_Justicesword", effect_test)
-#
-# print(effect_test)
+fandom_scrape_effect("BS56-058", "/wiki/The_SpacePirateOperator_Lisitsa", effect_test)
+fandom_scrape_effect("BS56-TX03 (B)", "/wiki/The_DragonKnightEmperor_Grand-Dragonic-Arthur", effect_test)
+print(effect_test)
 

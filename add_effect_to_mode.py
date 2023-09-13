@@ -40,14 +40,16 @@ for deck in tt_dict["ObjectStates"]:
 
         # Add english
         try:
-            card["Description"] = card["Description"] + "\n\n" + card_effect_en[nickname_save]
+            card["Description"] = card["Description"] + "\n\n" + \
+                                  card_effect_en[nickname_save] + "\nTranslation from Fandom Wiki"
         except:
             try:
-                card["Description"] = card["Description"] + "\n\n" + card_effect_en[nickname_save.replace("-", "")]
+                card["Description"] = card["Description"] + "\n\n" + \
+                                      card_effect_en[nickname_save.replace("-", "")] + "\nTranslation from Fandom Wiki"
             except:
                 nickname_save = nickname_save.split("-")
                 card["Description"] = card["Description"] + "\n\n" + card_effect_en[
-                    nickname_save[0] + "-" + nickname_save[1].zfill(3)]
+                    nickname_save[0] + "-" + nickname_save[1].zfill(3)] + "\nTranslation from Fandom Wiki"
 
 with open(f"{userSavesPath}TS_Save_13.json", "w", encoding="utf-8") as file:
     json.dump(tt_dict, file, ensure_ascii=False, indent=4)
