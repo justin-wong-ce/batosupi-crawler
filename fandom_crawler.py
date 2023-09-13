@@ -155,7 +155,7 @@ def fandom_scrape_effect(card_name, link, effect_dict):
 
     except IndexError:
         # print("COULD NOT FIND EFFECT - " + card_name)
-        effect_dict.update({card_name: "Should not happen - let us know!"})
+        effect_dict.update({card_name: "-"})
 
 
 def fandom_scrape_png(card_name, link, gen_name):

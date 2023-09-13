@@ -1,17 +1,13 @@
 import json
+from tabletop_name_import import get_description
 import glob
 import time
 import os
 
 userSavesPath = os.path.expanduser("~/Documents/My Games/Tabletop Simulator/Saves/")
-with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/chinese.json", "r", encoding="utf-8") as f:
-    card_effect_ch = json.load(f)
-with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "r", encoding="utf-8") as f:
-    card_effect_en = json.load(f)
 
 with open(f"{userSavesPath}TS_Save_13.json", "r", encoding="utf-8") as file:
     tt_dict = json.load(file)
-    # print(tt_dict)
 
 print(tt_dict["ObjectStates"])
 for deck in tt_dict["ObjectStates"]:
@@ -19,37 +15,11 @@ for deck in tt_dict["ObjectStates"]:
         continue
     for card in deck["ContainedObjects"][0]["ContainedObjects"]:
         nickname = card["Nickname"]
-        nickname_save = nickname
         if (card["GUID"] == "" and card["Nickname"] == "") or card["Nickname"] == "BS41-X07":
             continue
 
-        # Add chinese
-        nickname = nickname.replace("\t", "") \
-            .replace("10thX-", "10thX") \
-            .replace("X10TH", "10thX") \
-            .replace("X10TH", "10thX") \
-            .replace("RV-", "RV ")
-        try:
-            card["Description"] = card_effect_ch[nickname]
-        except:
-            try:
-                card["Description"] = card_effect_ch[nickname.replace("-", "")]
-            except:
-                nickname = nickname.split("-")
-                card["Description"] = card_effect_ch[nickname[0] + "-" + nickname[1].zfill(3)]
+        card["Description"] = get_description(nickname)
 
-        # Add english
-        try:
-            card["Description"] = card["Description"] + "\n\n" + \
-                                  card_effect_en[nickname_save] + "\nTranslation from Fandom Wiki"
-        except:
-            try:
-                card["Description"] = card["Description"] + "\n\n" + \
-                                      card_effect_en[nickname_save.replace("-", "")] + "\nTranslation from Fandom Wiki"
-            except:
-                nickname_save = nickname_save.split("-")
-                card["Description"] = card["Description"] + "\n\n" + card_effect_en[
-                    nickname_save[0] + "-" + nickname_save[1].zfill(3)] + "\nTranslation from Fandom Wiki"
 
 with open(f"{userSavesPath}TS_Save_13.json", "w", encoding="utf-8") as file:
     json.dump(tt_dict, file, ensure_ascii=False, indent=4)
