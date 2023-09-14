@@ -1,5 +1,6 @@
-# batosupi-crawler v0.1.0
-Image crawler + Tabletop Simulator importer for battle spirits
+# batosupi-crawler v0.1.1
+Image and effect translation crawler + Tabletop Simulator importer for Battle Spirits mod:
+https://steamcommunity.com/sharedfiles/filedetails/?id=1629315994
 
 ## Pre-requisites
 - Python >= 3.2, >= 3.7 is recommended 
@@ -14,12 +15,16 @@ Download/clone the repo
 1. In your `~/Documents/My Games/Tabletop Simulator/Saves` folder, copy an existing save `.json` file and rename it as `TS_Save_0.json`, this will be used later. Skip this if you are only downloading images.
 
 ### Usage
+
+TODO: Add effect scraper usage guide
+
 1. Run `main.py`
 2. Choose operation. We need to download the images of the cards first, so input `D` or `d`
 3. Enter the generation name of the cards you want to import (i.e. BS60, BSC39) and press Enter
     ```
-    Battle Spirits card importer v0.1.0
+    Battle Spirits card importer v0.1.1
     Download card images from fandom: [D/d]
+    Scrape card effects: [S/s]
     Load card names onto cards: [L/l]
     Choice: d
     Please input the card generation abbreviation (i.e. BSC28): CB23
@@ -42,7 +47,7 @@ Download/clone the repo
 
     (BS60.png contains BS02-X08 to BS60-058, BS60-1.png contains BS60-059 to SD56-RV009)
     
-7. Open Tabletop Simulator, load save `0` (The one copied earlier), and load an empty table
+7. Open Tabletop Simulator, load save `-` (The one copied earlier), and load an empty table
 8. Click on Objects > Components > Cards > Custom Deck and import cards, DO NOT CHANGE THE ORDER OF THE CARDS/SHUFFLE: 
 In case of multiple exported images from Deck Builder, have both decks of cards face down, and put first exported image on top of the latter, to retain card order (i.e. BS60 stack on top of BS60-1 stack)
 9. Overwrite the save file (Save 0)
