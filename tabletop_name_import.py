@@ -31,8 +31,6 @@ def get_description(nickname):
                 description = "bad - let us know!"
 
     # Add english
-    if nickname_save == "BS49-080":
-        pass
     nickname = nickname_save
     nickname = nickname.replace("\t", "") \
         .replace("10thX-", "10thX") \
@@ -65,35 +63,37 @@ def get_description(nickname):
         except KeyError:
             print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
             description = description + "\n\nbad - let us know!"
+    description = description.replace("&amp;", "&").replace("()", "")
     return description
 
 
-def tabletopNameImport(deckName):
+def tabletop_name_import(deck_name):
     # Edits Tabletop Save file to import names
-    f = open(userSavesPath + "TS_Save_0.json", "r")
+    f1 = open(userSavesPath + "TS_Save_-.json", "r", encoding="utf-8")
     deck_folder = "decks"
-    json_contents = f.read()
-    f.close()
+    json_contents = f1.read()
+    f1.close()
 
-    decks_to_rename = [deckName]
+    decks_to_rename = [deck_name]
 
     save_object = json.loads(json_contents)
     object_states = save_object["ObjectStates"]
     decks = [object_state
              for object_state in object_states
-             if object_state["Name"] == "DeckCustom"
+             if object_state["Name"] == "DeckCustom" or object_state["Name"] == "Deck"
              and object_state["Nickname"]
              in decks_to_rename]
 
     deck_files = {}
     for deck_nickname in decks_to_rename:
         file_name = deck_nickname.replace(" ", "-") + ".txt"
-        f = open(deck_folder + "/" + file_name, "r")
-        deck_files[deck_nickname] = f
-
+        f2 = open(deck_folder + "/" + file_name, "r", encoding="utf-8")
+        deck_files[deck_nickname] = f2
 
     for deck in decks:
         nickname = deck["Nickname"]
+        if nickname != deck_name:
+            continue
         deck_file = deck_files[nickname]
         file_content = deck_file.read()
         print(file_content)
@@ -107,18 +107,18 @@ def tabletopNameImport(deckName):
         for i in range(len(cards)):
             cards[i]["Nickname"] = file_lines[i]
             card_nickname = cards[i]["Nickname"]
-            if cards['Nickname'] == 'BS41-X07':
+            if cards[i]['Nickname'] == 'BS41-X07':
                 continue
 
-            cards["Description"] = get_description(card_nickname)
+            cards[i]["Description"] = get_description(card_nickname)
         new_savefile_contents = json.dumps(save_object, indent=2)
 
-    wf = open(userSavesPath + "TS_Save_-.json", "w")
+    wf = open(userSavesPath + "TS_Save_-.json", "w", encoding="utf-8")
     wf.write(new_savefile_contents)
     wf.close()
     print("Imported")
 
-# TODO:
+
 missing_effects = {
     "BS01-093": "[LV1][LV2] (When Attacks)\nWhen you opponent declares a block, "
                 "exhaust one of your opponent\'s Spirit except the blocking Spirit.\n"

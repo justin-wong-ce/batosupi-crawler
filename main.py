@@ -8,23 +8,23 @@ while True:
     print("Download card images: [D/d]")
     print("Scrape card effects: [S/s]")
     print("Load card names onto cards: [L/l]")
-    userIn = input("Choice: ")
-    if userIn.lower() != "d" and userIn.lower() != "l" and userIn.lower() != "s":
+    user_in = input("Choice: ")
+    if user_in.lower() != "d" and user_in.lower() != "l" and user_in.lower() != "s":
         print("Bad input, please input:\n"
               "\"D\" or \"d\" for download, or\n"
               "\"S\" or \"s\" for scraping card effects, or\n"
               "\"L\" or \"l\" for loading without double quotes")
         continue
 
-    cardGenerationName = input("Please input the card generation abbreviation (i.e. BSC28): ")
-    if userIn.lower() == "d":
-        fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName,
-                                      cardGenerationName, True, False, False, None)
-    elif userIn.lower() == "l":
-        tabletop_name_import.tabletopNameImport(cardGenerationName)
+    card_gen_name = input("Please input the card generation abbreviation (i.e. BSC28): ")
+    if user_in.lower() == "d":
+        fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + card_gen_name,
+                                      card_gen_name, True, False, False, None)
+    elif user_in.lower() == "l":
+        tabletop_name_import.tabletop_name_import(card_gen_name)
     else:
-        fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName,
-                                      cardGenerationName, False, False, False, None)
+        fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + card_gen_name,
+                                      card_gen_name, False, False, False, None)
 
     userCont = input("Continue? [(Y/y)/(N/n)]: ")
     if userCont.lower() == "n":
