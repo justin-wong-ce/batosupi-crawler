@@ -66,7 +66,7 @@ def scrape_promo(effect_dict):
         print("Processing: " + link[1])
 
 
-def scrape_all(dictionary):
+def scrape_all(effect_dict):
     # Scrape for all sets from Card_Sets page
     html = requests.get("https://battle-spirits.fandom.com/wiki/Card_Sets").text
 
@@ -90,7 +90,7 @@ def scrape_all(dictionary):
         count = count + 1
 
     for cards in threading_dicts:
-        dictionary.update(cards)
+        effect_dict.update(cards)
 
 
 scrape_all(dictionary)
