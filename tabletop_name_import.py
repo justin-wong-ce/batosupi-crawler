@@ -54,14 +54,14 @@ def get_description(nickname):
             return
     except KeyError:
         if nickname in missing_effects:
-            description = description + "\n\n" + missing_effects[nickname] + "\nTranslation by nepuUbU!"
+            description = description + "\n\n" + missing_effects[nickname] + "\n(Translation by nepuUbU)"
             return description
     try:
-        description = description + "\n\n" + en_dict[nickname] + "\nTranslation from Fandom Wiki"
+        description = description + "\n\n" + en_dict[nickname] + "\n(Translation from Fandom Wiki)"
     except KeyError:
         try:
             description = description + "\n\n" + \
-                          en_dict[nickname.replace("-", "")] + "\nTranslation from Fandom Wiki"
+                          en_dict[nickname.replace("-", "")] + "\n(Translation from Fandom Wiki)"
         except KeyError:
             print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
             description = description + "\n\nbad - let us know!"
