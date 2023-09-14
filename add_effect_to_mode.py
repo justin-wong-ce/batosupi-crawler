@@ -1,7 +1,5 @@
 import json
 from tabletop_name_import import get_description
-import glob
-import time
 import os
 
 userSavesPath = os.path.expanduser("~/Documents/My Games/Tabletop Simulator/Saves/")
@@ -11,9 +9,14 @@ with open(f"{userSavesPath}TS_Save_13.json", "r", encoding="utf-8") as file:
 
 print(tt_dict["ObjectStates"])
 for deck in tt_dict["ObjectStates"]:
-    if deck["Name"] != "Infinite_Bag" or deck["Nickname"] == "":
+    if deck["Name"] == "DeckCustom":
+        cards_arr = deck["ContainedObjects"]
+    elif deck["Name"] == "Infinite_Bag" and deck["Nickname"] != "":
+        cards_arr = deck["ContainedObjects"][0]["ContainedObjects"]
+    else:
         continue
-    for card in deck["ContainedObjects"][0]["ContainedObjects"]:
+
+    for card in cards_arr:
         nickname = card["Nickname"]
         if (card["GUID"] == "" and card["Nickname"] == "") or card["Nickname"] == "BS41-X07":
             continue

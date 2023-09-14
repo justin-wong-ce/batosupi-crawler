@@ -81,7 +81,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper):
         # Create the effects .json
         effect_dict_curr.update(effect_dict)
         with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
-            json.dump(effect_dict, f, ensure_ascii=False)
+            json.dump(effect_dict_curr, f, ensure_ascii=False)
 
 
 # DOM Element Remove
@@ -133,8 +133,14 @@ def fandom_scrape_effect(card_name, link, effect_dict):
     )
     results = re.findall(pattern, html_text)
 
+    if card_name in no_effect_cards:
+        effect_dict.update({card_name: ""})
+
     if card_name.find("RV") != -1:
-        results[0] = results[1]
+        try:
+            results[0] = results[1]
+        except:
+            pass
 
     ind = 0
     while len(results) == 0 and ind < len(reg_str):
@@ -148,14 +154,11 @@ def fandom_scrape_effect(card_name, link, effect_dict):
     try:
         if results[0].find("{effect}") != -1:
             results[0] = ""
-        # print(filter_dom(results[0]))
-        # if results[0] == "":
-        #     print(card_name + "NO EFFECT")
         effect_dict.update({card_name: filter_dom(results[0])})
 
     except IndexError:
-        # print("COULD NOT FIND EFFECT - " + card_name)
         effect_dict.update({card_name: "-"})
+        print("NO EFFECT FOUND: " + card_name)
 
 
 def fandom_scrape_png(card_name, link, gen_name):
@@ -225,8 +228,85 @@ def batspi_scrape_png(card_name, gen_name):
 
     download_save(batspi_url, card_name, gen_name)
 
+
+no_effect_cards = {
+    "SJ13-10",
+    "SJ13-11",
+    "SJ13-13",
+    "SJ13-14",
+    "SJ13-15",
+    "SJ13-19",
+    "BS02-051",
+    "BS02-053",
+    "BS03-020",
+    "BS03-041",
+    "BS03-071",
+    "BS03-072",
+    "BS04-040",
+    "BS05-045",
+    "BS10-004",
+    "BS10-028",
+    "BS16-028",
+    "BS19-063",
+    "BS20-046",
+    "BS31-057",
+    "BS32-050",
+    "BS33-005",
+    "BS33-012",
+    "BS35-006",
+    "BS35-017",
+    "BS35-032",
+    "BS35-034",
+    "BS35-048",
+    "BS35-061",
+    "BS36-006",
+    "BS36-019",
+    "BS36-025",
+    "BS36-035",
+    "BS36-042",
+    "BS36-048",
+    "BS37-008",
+    "BS37-019",
+    "BS37-024",
+    "BS37-048",
+    "BS37-067",
+    "BS40-001",
+    "BS44-049",
+    "BS46-015",
+    "BS50-RV006",
+    "SD01-022",
+    "BS03-071",
+    "BS03-072",
+    "SD20-001",
+    "SD22-001",
+    "SD33-004",
+    "SD34-006",
+    "BSC19-003",
+    "BSC19-006",
+    "BSC19-018",
+    "BSC19-020",
+    "BSC24-002",
+    "BSC26-001",
+    "BSC26-013",
+    "BSC26-020",
+    "BSC26-024",
+    "BSC26-032",
+    "BSC26-038",
+    "BS37-048",
+    "BSC42-003",
+    "BSC42-013",
+    "BSC42-032",
+    "BSC42-047",
+    "BSC42-056",
+    "BSC42-070",
+    "CB01-001",
+    "CB01-004",
+    "CB01-017",
+    "CB01-035",
+}
+
 # Quick Tests
-effect_test = {}
+# effect_test = {}
 # fandom_scrape_png("BSC18-014", "wiki/Leona-Rikeboom#Original_", "BSC18")
 # batspi_scrape_png("BS48-RV007", "BS48")
 
@@ -249,7 +329,7 @@ effect_test = {}
 # fandom_scrape_effect("BS01-041", "/wiki/Cobraiga")
 # fandom_scrape_effect("BS01-138", "/wiki/Hand_Reverse")
 
-fandom_scrape_effect("BS56-058", "/wiki/The_SpacePirateOperator_Lisitsa", effect_test)
-fandom_scrape_effect("BS56-TX03 (B)", "/wiki/The_DragonKnightEmperor_Grand-Dragonic-Arthur", effect_test)
-print(effect_test)
+# fandom_scrape_effect("BS56-058", "/wiki/The_SpacePirateOperator_Lisitsa", effect_test)
+# fandom_scrape_effect("BS56-TX03 (B)", "/wiki/The_DragonKnightEmperor_Grand-Dragonic-Arthur", effect_test)
+# print(effect_test)
 

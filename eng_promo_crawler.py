@@ -63,7 +63,7 @@ for card in cards:
     fandom_crawler.fandom_scrape_effect(card[0], card[1], effect_dict)
     count = count + 1
     if count % 100 == 0:
-        print("another 100 processed")
+        print("100 Promo cards processed")
 
 for link in links:
     fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com" + link[1], link[0], False, True)

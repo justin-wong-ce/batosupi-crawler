@@ -22,20 +22,31 @@ def get_description(nickname):
         try:
             description = ch_dict[nickname.replace("-", "")]
         except:
-            nickname = nickname.split("-")
-            description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+            try:
+                nickname = nickname.split("-")
+                description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+            except:
+                print("Status error on card: " + nickname_save)
+                description = "bad - let us know!"
 
     # Add english
+    nickname = nickname_save
+    if en_dict[nickname] == "-" or en_dict[nickname] == "":
+        return
     try:
-        description = description + "\n\n" + en_dict[nickname_save] + "\nTranslation from Fandom Wiki"
+        description = description + "\n\n" + en_dict[nickname] + "\nTranslation from Fandom Wiki"
     except:
         try:
             description = description + "\n\n" + \
-                          en_dict[nickname_save.replace("-", "")] + "\nTranslation from Fandom Wiki"
+                          en_dict[nickname.replace("-", "")] + "\nTranslation from Fandom Wiki"
         except:
-            nickname_save = nickname_save.split("-")
-            description = description + "\n\n" + \
-                          en_dict[nickname_save[0] + "-" + nickname_save[1].zfill(3)] + "\nTranslation from Fandom Wiki"
+            try:
+                nickname_save = nickname.split("-")
+                description = description + "\n\n" + en_dict[nickname[0] + "-" +
+                                nickname[1].zfill(3)] + "\nTranslation from Fandom Wiki"
+            except:
+                print("Effect error on card: " + nickname_save)
+                description = description + "\n\nbad - let us know!"
     return description
 
 
@@ -55,20 +66,17 @@ def tabletopNameImport(deckName):
              if object_state["Name"] == "DeckCustom"
              and object_state["Nickname"]
              in decks_to_rename]
-    print(decks)
+
     deck_files = {}
     for deck_nickname in decks_to_rename:
         file_name = deck_nickname.replace(" ", "-") + ".txt"
-        print(file_name)
         f = open(deck_folder + "/" + file_name, "r")
         deck_files[deck_nickname] = f
-    print(deck_files)
+
 
     for deck in decks:
         nickname = deck["Nickname"]
-        print("nickname: ", nickname)
         deck_file = deck_files[nickname]
-        print(deck_file)
         file_content = deck_file.read()
         print(file_content)
         file_lines = file_content.split("\n")
