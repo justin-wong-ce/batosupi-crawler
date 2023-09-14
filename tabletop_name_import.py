@@ -1,5 +1,7 @@
 import json
 import os
+import re
+from fandom_crawler import no_effect_cards
 
 userSavesPath = os.path.expanduser("~/Documents/My Games/Tabletop Simulator/Saves/")
 with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/chinese.json", "r", encoding="utf-8") as f:
@@ -14,39 +16,55 @@ def get_description(nickname):
     nickname = nickname.replace("\t", "") \
         .replace("10thX-", "10thX") \
         .replace("X10TH", "10thX") \
-        .replace("X10TH", "10thX") \
         .replace("RV-", "RV ")
     try:
         description = ch_dict[nickname]
-    except:
+    except KeyError:
         try:
             description = ch_dict[nickname.replace("-", "")]
-        except:
+        except KeyError:
             try:
                 nickname = nickname.split("-")
                 description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
-            except:
-                print("Status error on card: " + nickname_save)
+            except KeyError:
+                print("KeyError on card (ch): " + nickname_save)
                 description = "bad - let us know!"
 
     # Add english
+    if nickname_save == "BS49-080":
+        pass
     nickname = nickname_save
-    if en_dict[nickname] == "-" or en_dict[nickname] == "":
-        return
+    nickname = nickname.replace("\t", "") \
+        .replace("10thX-", "10thX") \
+        .replace("X10TH", "10thX") \
+        .replace("RV-", "RV") \
+        .replace("RV  ", "RV") \
+        .replace("RV ", "RV") \
+        .replace("EX-", "EX") \
+        .replace("(A)", " (A)") \
+        .replace("(B)", " (B)") \
+        .replace("LM18-G06", "LM18-G06-X")
+    if re.search(r"^BS4\d-\d{2}$", nickname):
+        nickname = nickname.replace("-", "-0")
+
+    if nickname in no_effect_cards:
+        return ""
+    try:
+        if en_dict[nickname] == "-" or en_dict[nickname] == "":
+            return
+    except KeyError:
+        if nickname in missing_effects:
+            description = description + "\n\n" + missing_effects[nickname] + "\nTranslation by nepuUbU!"
+            return description
     try:
         description = description + "\n\n" + en_dict[nickname] + "\nTranslation from Fandom Wiki"
-    except:
+    except KeyError:
         try:
             description = description + "\n\n" + \
                           en_dict[nickname.replace("-", "")] + "\nTranslation from Fandom Wiki"
-        except:
-            try:
-                nickname_save = nickname.split("-")
-                description = description + "\n\n" + en_dict[nickname[0] + "-" +
-                                nickname[1].zfill(3)] + "\nTranslation from Fandom Wiki"
-            except:
-                print("Effect error on card: " + nickname_save)
-                description = description + "\n\nbad - let us know!"
+        except KeyError:
+            print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
+            description = description + "\n\nbad - let us know!"
     return description
 
 
@@ -99,3 +117,54 @@ def tabletopNameImport(deckName):
     wf.write(new_savefile_contents)
     wf.close()
     print("Imported")
+
+# TODO:
+missing_effects = {
+    "BS01-093": "[LV1][LV2] (When Attacks)\nWhen you opponent declares a block, "
+                "exhaust one of your opponent\'s Spirit except the blocking Spirit.\n"
+                "[LV2] (When Destroyed)\nRefresh one of your Spirits.",
+    "BS03-093": "[LV1][LV2][LV3] (When Attacks)\nThis Spirit gains +2000 BP.",
+    "BS04-093": "Flash - During this term, all opponent's Spirits cannot activate their (When Destroyed) effect.",
+    "BS40-CP04": "Flash - Advent: Cost 5 or more  (Either Attack Step)\nBy sending your  to the Trash, "
+                 "stack this from your hand onto your target Spirit.\n\n"
+                 "[LV1][LV2][LV3] (When Advents)\n"
+                 "Draw one card from your deck, and during this turn, this Spirit gains +10000 BP.\n"
+                 "[LV2][LV3] (When destroyed)\n"
+                 "By discarding one of this Spirit's Pre-Advent cards, "
+                 "this Spirit can remain on the field in refresh state.",
+    "BS40-CP05": "Flash - Advent: Cost 5 or more  (Either Attack Step)\nBy sending your  to the Trash, "
+                 "stack this from your hand onto your target Spirit.\n\n"
+                 "[LV1][LV2][LV3] (When Advents)\n"
+                 "Draw one card from your deck, and during this turn, this Spirit gains +10000 BP.\n"
+                 "[LV2][LV3] (When destroyed)\n"
+                 "By discarding one of this Spirit's Pre-Advent cards, "
+                 "this Spirit can remain on the field in refresh state.",
+    "BS40-CP06": "Flash - Advent: Cost 5 or more  (Either Attack Step)\nBy sending your  to the Trash, "
+                 "stack this from your hand onto your target Spirit.\n\n"
+                 "[LV1][LV2][LV3] (When Advents)\n"
+                 "Draw one card from your deck, and during this turn, this Spirit gains +10000 BP.\n"
+                 "[LV2][LV3] (When destroyed)\n"
+                 "By discarding one of this Spirit's Pre-Advent cards, "
+                 "this Spirit can remain on the field in refresh state.",
+    "BS40-CP07": "Flash - Advent: Cost 5 or more  (Either Attack Step)\nBy sending your  to the Trash, "
+                 "stack this from your hand onto your target Spirit.\n\n"
+                 "[LV1][LV2][LV3] (When Advents)\n"
+                 "Draw one card from your deck, and during this turn, this Spirit gains +10000 BP.\n"
+                 "[LV2][LV3] (When destroyed)\n"
+                 "By discarding one of this Spirit's Pre-Advent cards, "
+                 "this Spirit can remain on the field in refresh state.",
+    "BS40-CP08": "Flash - Advent: Cost 5 or more  (Either Attack Step)\nBy sending your  to the Trash, "
+                 "stack this from your hand onto your target Spirit.\n\n"
+                 "[LV1][LV2][LV3] (When Advents)\n"
+                 "Draw one card from your deck, and during this turn, this Spirit gains +10000 BP.\n"
+                 "[LV2][LV3] (When destroyed)\n"
+                 "By discarding one of this Spirit's Pre-Advent cards, "
+                 "this Spirit can remain on the field in refresh state.",
+    "BS40-CP09": "Flash - Advent: Cost 5 or more  (Either Attack Step)\nBy sending your  to the Trash, "
+                 "stack this from your hand onto your target Spirit.\n\n"
+                 "[LV1][LV2][LV3] (When Advents)\n"
+                 "Draw one card from your deck, and during this turn, this Spirit gains +10000 BP.\n"
+                 "[LV2][LV3] (When destroyed)\n"
+                 "By discarding one of this Spirit's Pre-Advent cards, "
+                 "this Spirit can remain on the field in refresh state."
+}

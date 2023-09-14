@@ -7,7 +7,7 @@ import json
 
 
 # JPG DL FOR FANDOM
-def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper):
+def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, effect_dict):
     if not is_img_dl:
         effect_dict = {}
 
@@ -20,35 +20,45 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper):
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|TCP|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
-        r"?:X|XX|10thX|RV|TX|TCP|CP|CX|G|XV|U|D)?\d?\d\d)(?: \([AB]\))?(?:-X)?)|(?:\d\d-EXG\d\d)))\s</td>\s<td><a href=\""
-        r"([^\"]*)\"[^/]*/a>((?: \(Revival)?)")
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
+        r"?:X|XX|10thX|RV|RVX|RVXX|TX|TCP|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD)?\d?\d\d)(?:\s?\([AB]\))?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
+        r"([^\"]*)\".*/a>")
     rows = re.findall(pattern, html_text)
 
     # For each card, scrape page for png url
     txt_print = []
     for i in range(len(rows)):
+        url = rows[i][1]
+        if url.find("https") != -1:
+            url = url[url.find("/wiki"):]
+
         # Wait 1 seconds for each 50 requests
         if i != 0 and i % 50 == 0:
             time.sleep(1)
 
         card_name = rows[i][0]
-        # haveRevival = rows[i][2].find("Revival") != -1
+        if re.search(r"\d\((?:A|B)\)", card_name):
+            card_name = card_name.replace("(", " (")
 
-        if card_name.find("BS") == -1 and \
-                card_name.find("BSC") == -1 and \
-                card_name.find("SD") == -1 and \
-                card_name.find("PC") == -1 and \
-                card_name.find("PB") == -1 and \
-                card_name.find("CB") == -1 and \
-                no_name_tamper is False:
+        if re.search(r"^SD3[89]$", gen_name) and card_name.find("006") != -1:
+            card_name = card_name.replace("SD36", gen_name)
+        elif card_name == "SD38-012" and url.find("Binding") != -1:
+            card_name = "SD38-014"
+        elif re.search(r"^CB0[467]$", gen_name) and card_name.find("038") != -1:
+            card_name = card_name.replace("CB02", gen_name)
+        elif gen_name == "BSC24" and card_name == "BSC23-036":
+            card_name = "BSC24-036"
+        elif gen_name == "BSC23" and card_name == "BSC18-041":
+            card_name = "BSC23-041"
+
+        if re.search(r"^[^-]+$", card_name) and no_name_tamper is False:
             # Append generation name as default
             card_name = gen_name + "-" + card_name
         if is_img_dl:
-            threading.Thread(target=fandom_scrape_png, args=(card_name, rows[i][1], gen_name)).start()
+            threading.Thread(target=fandom_scrape_png, args=(card_name, url, gen_name)).start()
         else:
-            # threading.Thread(target=fandom_scrape_effect, args=(card_name, rows[i][1], effect_dict)).start()
-            fandom_scrape_effect(card_name, rows[i][1], effect_dict)
+            threading.Thread(target=fandom_scrape_effect, args=(card_name, url, effect_dict)).start()
+            # fandom_scrape_effect(card_name, rows[i][1], effect_dict)
 
         if card_name not in txt_print:
             txt_print.append(card_name)
@@ -69,7 +79,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper):
                 if i < len(txt_print) - 1:
                     txtFile.write("\n")
             txtFile.close()
-    else:
+    elif not effect_threading:
         try:
             with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json",
                       "r", encoding="utf-8") as f:
@@ -154,11 +164,25 @@ def fandom_scrape_effect(card_name, link, effect_dict):
     try:
         if results[0].find("{effect}") != -1:
             results[0] = ""
+        if re.search(r"^17-EXG\d{2}$", card_name):
+            card_name = "P" + card_name
+            print("Changing EXG")
+        elif re.search(r"^\d{3}$", card_name) or \
+                re.search(r"^\d{2}-\d{2}[RAEDTS]?(?: \([AB]\))?$", card_name) or \
+                re.search(r"^17-EXG\d{2}", card_name):
+            card_name = "P" + card_name
+        elif re.search(r"^X-\d{3}[RAEDTS]?$", card_name):
+            card_name = card_name.replace("X-", "X")
+        elif re.search(r"^PX-\d{2}$", card_name):
+            card_name = card_name.replace("PX-", "PX19-")
+        elif card_name == "CP17-X07":
+            card_name = "CP14-X07"
         effect_dict.update({card_name: filter_dom(results[0])})
 
     except IndexError:
         effect_dict.update({card_name: "-"})
-        print("NO EFFECT FOUND: " + card_name)
+        if card_name not in no_effect_cards:
+            print("NO EFFECT FOUND: " + card_name)
 
 
 def fandom_scrape_png(card_name, link, gen_name):
@@ -330,6 +354,6 @@ no_effect_cards = {
 # fandom_scrape_effect("BS01-138", "/wiki/Hand_Reverse")
 
 # fandom_scrape_effect("BS56-058", "/wiki/The_SpacePirateOperator_Lisitsa", effect_test)
-# fandom_scrape_effect("BS56-TX03 (B)", "/wiki/The_DragonKnightEmperor_Grand-Dragonic-Arthur", effect_test)
+# fandom_scrape_effect("dfg", "/wiki/Atomic_Breath", effect_test)
 # print(effect_test)
 

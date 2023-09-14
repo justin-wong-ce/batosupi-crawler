@@ -7,7 +7,6 @@ userSavesPath = os.path.expanduser("~/Documents/My Games/Tabletop Simulator/Save
 with open(f"{userSavesPath}TS_Save_13.json", "r", encoding="utf-8") as file:
     tt_dict = json.load(file)
 
-print(tt_dict["ObjectStates"])
 for deck in tt_dict["ObjectStates"]:
     if deck["Name"] == "DeckCustom":
         cards_arr = deck["ContainedObjects"]

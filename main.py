@@ -16,15 +16,15 @@ while True:
               "\"L\" or \"l\" for loading without double quotes")
         continue
 
-    cardGenerationName = input("Please input the card generation abbreviation (i.e. BSC28): ").upper()
+    cardGenerationName = input("Please input the card generation abbreviation (i.e. BSC28): ")
     if userIn.lower() == "d":
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName,
-                                      cardGenerationName, True, False)
+                                      cardGenerationName, True, False, False, None)
     elif userIn.lower() == "l":
         tabletop_name_import.tabletopNameImport(cardGenerationName)
     else:
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + cardGenerationName,
-                                      cardGenerationName, False, False)
+                                      cardGenerationName, False, False, False, None)
 
     userCont = input("Continue? [(Y/y)/(N/n)]: ")
     if userCont.lower() == "n":
