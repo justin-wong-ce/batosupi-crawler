@@ -12,7 +12,7 @@ Download/clone the repo
 
 ## Usage
 ### Setup
-1. In your `~/Documents/My Games/Tabletop Simulator/Saves` folder, copy an existing save `.json` file and rename it as `TS_Save_0.json`, this will be used later. Skip this if you are only downloading images.
+1. In your `~/Documents/My Games/Tabletop Simulator/Saves` folder, copy an existing save `.json` file and rename it as `TS_Save_-.json`, this will be used later. Skip this if you are only downloading images.
 
 ### Usage
 
