@@ -8,7 +8,7 @@ import json
 
 # JPG DL FOR FANDOM
 def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, effect_dict):
-    if not is_img_dl:
+    if not is_img_dl and not effect_threading:
         effect_dict = {}
 
     # Scrape link for links to individual cards
@@ -27,6 +27,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
 
     # For each card, scrape page for png url
     txt_print = []
+    threads = []
     for i in range(len(rows)):
         url = rows[i][1]
         if url.find("https") != -1:
@@ -55,18 +56,17 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
             # Append generation name as default
             card_name = gen_name + "-" + card_name
         if is_img_dl:
-            threading.Thread(target=fandom_scrape_png, args=(card_name, url, gen_name)).start()
+            threads.append(threading.Thread(target=fandom_scrape_png, args=(card_name, url, gen_name)))
         else:
-            threading.Thread(target=fandom_scrape_effect, args=(card_name, url, effect_dict)).start()
-            # fandom_scrape_effect(card_name, rows[i][1], effect_dict)
+            threads.append(threading.Thread(target=fandom_scrape_effect, args=(card_name, url, effect_dict)))
+        threads[i].start()
 
         if card_name not in txt_print:
             txt_print.append(card_name)
 
     # Wait for threads to be done
-    while True:
-        if threading.active_count() == 1:
-            break
+    for thread in threads:
+        thread.join()
     
     if is_img_dl:
         # Auto create the .txt file in decks
@@ -145,6 +145,7 @@ def fandom_scrape_effect(card_name, link, effect_dict):
 
     if card_name in no_effect_cards:
         effect_dict.update({card_name: ""})
+        return
 
     if card_name.find("RV") != -1:
         try:

@@ -4,10 +4,14 @@ import re
 from fandom_crawler import no_effect_cards
 
 userSavesPath = os.path.expanduser("~/Documents/My Games/Tabletop Simulator/Saves/")
-with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/chinese.json", "r", encoding="utf-8") as f:
-    ch_dict = json.load(f)
-with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "r", encoding="utf-8") as f:
-    en_dict = json.load(f)
+try:
+    with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/chinese.json", "r", encoding="utf-8") as f:
+        ch_dict = json.load(f)
+    with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "r", encoding="utf-8") as f:
+        en_dict = json.load(f)
+except FileNotFoundError:
+    ch_dict = {}
+    en_dict = {}
 
 
 def get_description(nickname):

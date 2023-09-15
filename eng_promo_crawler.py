@@ -57,13 +57,19 @@ def scrape_promo(effect_dict):
         # fandom_crawler.fandom_scrape_effect(card[0], card[1], effect_dict)
         threading.Thread(target=fandom_crawler.fandom_scrape_effect, args=(card[0], card[1], effect_dict)).start()
 
+    count = 0
     while True:
-        if threading.active_count() == 1:
+        new = threading.active_count()
+        if new == 1:
             break
+        elif new != count:
+            count = new
+            print(str(count) + " threads in progress")
 
     for link in links:
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com" + link[1], link[0], False, True, False, None)
         print("Processing: " + link[1])
+    return effect_dict
 
 
 def scrape_all(effect_dict):
@@ -74,27 +80,38 @@ def scrape_all(effect_dict):
     patt = re.compile(r"<a href=\"([^\"]*)\" title=\"([^\"]*)\">")
     urls = re.findall(patt, html)
     urls = set(urls)
+    urls = list(urls)
 
-    count = 0
-    threading_dicts = {} * len(urls)
+    threading_dicts = [dict() for i in range(len(urls))]
+    threads = []
     for i in range(len(urls)):
         url = urls[i]
         if re.search(r"^/wiki/(?:BS|BSC|SD|PC|PB|CB)\d{2}", url[0]):
             no_tamper = False
         else:
             no_tamper = True
-        print("Processing " + str(count) + "/" + str(len(urls)) + ": " + url[0])
-        threading.Thread(target=fandom_crawler.fandom_crawler,
+        print(str(i) + "/" + str(len(urls)) + " initiated: " + url[0])
+        threads.append(threading.Thread(target=fandom_crawler.fandom_crawler,
                          args=("https://battle-spirits.fandom.com" +
-                               url[0], url[1], False, no_tamper, True, threading_dicts[i])).start()
-        count = count + 1
+                               url[0], url[1], False, no_tamper, True, threading_dicts[i])))
+        threads[i].start()
 
-    for cards in threading_dicts:
-        effect_dict.update(cards)
+    count = 0
+    while True:
+        new = threading.active_count()
+        if new == 1:
+            break
+        elif new != count:
+            count = new
+            print(str(count) + " threads in progress")
+    for link_dict in threading_dicts:
+        effect_dict.update(link_dict)
+    return effect_dict
 
 
-scrape_all(dictionary)
-scrape_promo(dictionary)
+dictionary = scrape_all(dictionary)
+dictionary = scrape_promo(dictionary)
+print("#Card effects processed = " + str(len(dictionary)))
 
 try:
     with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "r", encoding='utf-8') as f:
