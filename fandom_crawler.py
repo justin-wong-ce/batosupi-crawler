@@ -41,7 +41,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
         if re.search(r"\d\((?:A|B)\)", card_name):
             card_name = card_name.replace("(", " (")
 
-        if re.search(r"^SD3[89]$", gen_name) and card_name.find("006") != -1:
+        if re.search(r"^SD3[789]$", gen_name) and card_name.find("006") != -1:
             card_name = card_name.replace("SD36", gen_name)
         elif card_name == "SD38-012" and url.find("Binding") != -1:
             card_name = "SD38-014"
