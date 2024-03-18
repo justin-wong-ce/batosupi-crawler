@@ -22,17 +22,22 @@ def get_description(nickname):
         .replace("X10TH", "10thX") \
         .replace("RV-", "RV ")
     try:
-        description = ch_dict[nickname]
-    except KeyError:
         try:
-            description = ch_dict[nickname.replace("-", "")]
+            description = ch_dict[nickname]
         except KeyError:
             try:
-                nickname = nickname.split("-")
-                description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+                description = ch_dict[nickname.replace("-", "")]
             except KeyError:
-                print("KeyError on card (ch): " + nickname_save)
-                description = "bad - let us know!"
+                try:
+                    nickname = nickname.split("-")
+                    description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+                except KeyError:
+                    print("KeyError on card (ch): " + nickname_save)
+                    description = "[CHINESE] Missing - new cards may not have translations yet\n" \
+                        + "If this is an old card, let us know!"
+    except:
+        print("FATAL PARSE ERROR")
+        description = "[CHI] FATAL ERROR\n"
 
     # Add english
     nickname = nickname_save
@@ -66,7 +71,7 @@ def get_description(nickname):
                           en_dict[nickname.replace("-", "")] + "\n(Translation from Fandom Wiki)"
         except KeyError:
             print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
-            description = description + "\n\nbad - let us know!"
+            description = description + "\n\n[ENGLISH] Bad - let us know! (new cards may not have translations yet)"
     description = description.replace("&amp;", "&").replace("()", "")
     return description
 

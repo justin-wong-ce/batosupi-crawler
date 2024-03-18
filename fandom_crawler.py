@@ -20,7 +20,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
         r"?:X|XX|10thX|RV|RVX|RVXX|TX|TCP|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD)?\d?\d\d)(?:\s?\([AB]\))?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
         r"([^\"]*)\".*/a>")
     rows = re.findall(pattern, html_text)
@@ -88,7 +88,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
             print("File not found")
             effect_dict_curr = {}
             pass
-        # Create the effects .json
+        # Update effects .json
         effect_dict_curr.update(effect_dict)
         with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
             json.dump(effect_dict_curr, f, ensure_ascii=False)
@@ -219,6 +219,7 @@ def fandom_scrape_png(card_name, link, gen_name):
             download_save(png_url, card_name, gen_name)
         except IndexError:
             print("IndexError, falling back to batspi")
+            print("card_name: " + card_name + ", link: " + link + ", gen: " + gen_name)
             # Fallback to batspi
             batspi_scrape_png(card_name, gen_name)
 
@@ -226,8 +227,14 @@ def fandom_scrape_png(card_name, link, gen_name):
 def download_save(image_link, name, gen_name):
     filename = "downloads/" + gen_name + "/assets/" + name + ".jpg"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, "wb") as f:
-        f.write(requests.get(image_link).content)
+    try:
+        with open(filename, "wb") as f:
+            f.write(requests.get(image_link).content)
+    except Exception as exception:
+        print("EXCEPTION OCCURED")
+        print(exception)
+        print(image_link, name, gen_name)
+
 
 
 def batspi_scrape_png(card_name, gen_name):
@@ -244,6 +251,8 @@ def batspi_scrape_png(card_name, gen_name):
         batspi_url += "SD" + "/" + card_name + ".jpg"
     elif card_name.find("BSC") != -1:
         batspi_url += "BSC" + "/" + card_name + ".jpg"
+    elif card_name.find("CB") != -1:
+        batspi_url += "CB" + "/" + card_name + ".jpg"
     elif card_name.find("PC") != -1:
         batspi_url += "ETC" + "/" + card_name + ".jpg"
     elif card_name.find("BS") != -1:
