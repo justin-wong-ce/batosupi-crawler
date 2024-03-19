@@ -1,4 +1,4 @@
-# batosupi-crawler v0.1.1
+# batosupi-crawler v0.2.0
 Image and effect translation crawler + Tabletop Simulator importer for Battle Spirits mod:
 https://steamcommunity.com/sharedfiles/filedetails/?id=1629315994
 
@@ -20,7 +20,8 @@ TODO: Add effect scraper usage guide
 
 1. Run `main.py`
 2. Choose operation. We need to download the images of the cards first, so input `D` or `d`
-3. Enter the generation name of the cards you want to import (i.e. BS60, BSC39) and press Enter
+3. Enter a specific link if Fandom link is not simply the generation name appended at the end. Else leave empty and press Enter.
+4. Enter the generation name of the cards you want to import (i.e. BS60, BSC39) and press Enter
     ```
     Battle Spirits card importer v0.1.1
     Download card images from fandom: [D/d]
@@ -28,12 +29,13 @@ TODO: Add effect scraper usage guide
     Load card names onto cards: [L/l]
     Choice: d
     Please input the card generation abbreviation (i.e. BSC28): CB23
+    Page link (LEAVE EMPTY TO AUTO GENERATE):
     Continue? [(Y/y)/(N/n)]: 
     ```
 
-4. When cards are done downloading, they are saved in the `./downloads/GENERATION_NAME/assets` folder, open this folder and check for bad images
-5. (Continue if you are importing to Tabletop Simulator) Open the deck builder, drag all the downloaded images into it.
-6. In the deck builder, export the deck as a `.png` file. If there are more than 69 cards, there will be multiple tabs in the deck builder and you have to export multiple `.png` files and retain the order of the `.png` (**Order: Ascending alphabetical order**)
+5. When cards are done downloading, they are saved in the `./downloads/GENERATION_NAME/assets` folder, open this folder and check for bad images
+6. (Continue if you are importing to Tabletop Simulator) Open the deck builder, drag all the downloaded images into it.
+7. In the deck builder, export the deck as a `.png` file. If there are more than 69 cards, there will be multiple tabs in the deck builder and you have to export multiple `.png` files and retain the order of the `.png` (**Order: Ascending alphabetical order**)
 
     ```
     Mode                 LastWriteTime         Length Name
@@ -47,11 +49,11 @@ TODO: Add effect scraper usage guide
 
     (BS60.png contains BS02-X08 to BS60-058, BS60-1.png contains BS60-059 to SD56-RV009)
     
-7. Open Tabletop Simulator, load save `-` (The one copied earlier), and load an empty table
-8. Click on Objects > Components > Cards > Custom Deck and import cards, DO NOT CHANGE THE ORDER OF THE CARDS/SHUFFLE: 
+8. Open Tabletop Simulator, load save `-` (The one copied earlier), and load an empty table
+9. Click on Objects > Components > Cards > Custom Deck and import cards, DO NOT CHANGE THE ORDER OF THE CARDS/SHUFFLE: 
 In case of multiple exported images from Deck Builder, have both decks of cards face down, and put first exported image on top of the latter, to retain card order (i.e. BS60 stack on top of BS60-1 stack)
-9. Overwrite the save file (Save 0)
-10. Rerun `main.py` or continue the script, and input `l`/`L` to load card names
+10. Overwrite the save file (Save 0)
+11. Rerun `main.py` or continue the script, and input `l`/`L` to load card names
 
     ```
     Continue? [(Y/y)/(N/n)]: y
@@ -69,9 +71,9 @@ In case of multiple exported images from Deck Builder, have both decks of cards 
     Continue? [(Y/y)/(N/n)]:
     ```
 
-11. Enter the card generation name
-12. Names will be loaded into "Save -":
-13. Cards are now named and imported
+12. Enter the card generation name
+13. Names will be loaded into "Save -":
+14. Cards are now named and imported
 
 ## Troublshooting
 - `AssertionError` with files_lines != cards:
