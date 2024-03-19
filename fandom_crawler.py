@@ -366,4 +366,5 @@ no_effect_cards = {
 # fandom_scrape_effect("BS56-058", "/wiki/The_SpacePirateOperator_Lisitsa", effect_test)
 # fandom_scrape_effect("dfg", "/wiki/Atomic_Breath", effect_test)
 # print(effect_test)
-
+# fandom_crawler('https://battle-spirits.fandom.com/wiki/Battle_Spirits_Premium_Diva_BOX:_Diva_Halloween_Festival',
+#                'PB15', True, False, False, None)
