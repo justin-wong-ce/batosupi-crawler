@@ -22,18 +22,20 @@ def har_crawl():
     # Extract card name from each url
     # Download card and save
     # Update .txt holding card names (w/ order)
-    gen_name = re.search(r"BS-JA\/(\S+)\/", urls[0]).group(1)
+    gen_name = re.search(r"BS-JA\/(\S+)\/", urls[0]).group(1).upper()
+    print(f"Processing set '{gen_name}'...")
 
     txt_save = f"{os.path.dirname(os.path.realpath(__file__))}/decks/" + gen_name + ".txt"
     txt_print = []
 
-    for url in urls:
-        card_name = re.search(gen_name + r"\/(\S+)\.png", url).group(1)
+    for i, url in enumerate(urls):
+        print(f"{i}/{len(urls)}")
+        card_name = re.search(gen_name + r"\/(\S+)\.png", url).group(1).upper()
         if "%2B" in card_name:
             card_name = card_name[:card_name.find("%2B")]
         if card_name[0].isdigit():
             card_name = "BS" + card_name
-        if card_name[-1] == "p":
+        if card_name[-1] in ["p", "P"]:
             card_name = card_name[:-1] + "-SCR"
         if card_name not in txt_print:
             txt_print.append(card_name)
@@ -55,6 +57,7 @@ def har_crawl():
             if i < len(txt_print) - 1:
                 txtFile.write("\n")
         txtFile.close()
+    print(f"Done processing set {gen_name}")
 
 
 # Local testing

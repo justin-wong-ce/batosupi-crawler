@@ -17,10 +17,14 @@ except FileNotFoundError:
 def get_description(nickname):
     nickname_save = nickname
     # Add chinese
+    nickname = nickname.upper()
     nickname = nickname.replace("\t", "") \
-        .replace("10thX-", "10thX") \
+        .replace("10THX-", "10thX") \
         .replace("X10TH", "10thX") \
-        .replace("RV-", "RV ")
+        .replace("RV-", "RV ") \
+        .replace("-SCR", "")
+    if nickname[-1].isdigit() and nickname[-2] == '-':
+        nickname = nickname[:-2]
     try:
         try:
             description = ch_dict[nickname]
@@ -45,6 +49,7 @@ def get_description(nickname):
 
     # Add english
     nickname = nickname_save
+    nickname = nickname.upper()
     nickname = nickname.replace("\t", "") \
         .replace("10thX-", "10thX") \
         .replace("X10TH", "10thX") \
@@ -54,9 +59,14 @@ def get_description(nickname):
         .replace("EX-", "EX") \
         .replace("(A)", " (A)") \
         .replace("(B)", " (B)") \
-        .replace("LM18-G06", "LM18-G06-X")
+        .replace("LM18-G06", "LM18-G06-X") \
+        .replace("-SCR", "")
+
     if re.search(r"^BS4\d-\d{2}$", nickname):
         nickname = nickname.replace("-", "-0")
+
+    if nickname[-1].isdigit() and nickname[-2] == '-':
+        nickname = nickname[:-2]
 
     if nickname in no_effect_cards:
         return ""
