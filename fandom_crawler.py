@@ -1,9 +1,10 @@
-import threading
-import requests
-import re
-import os
-import time
 import json
+import os
+import re
+import requests
+import threading
+import time
+
 
 
 # JPG DL FOR FANDOM
@@ -20,8 +21,8 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
-        r"?:X|XX|10thX|RV|RVX|RVXX|TX|TCP|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD)?\d?\d\d)(?:\s?\([AB]\))?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
+        r"?:X|XX|10thX|RV|RVX|RVXX|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
         r"([^\"]*)\".*/a>")
     rows = re.findall(pattern, html_text)
 
@@ -217,6 +218,7 @@ def fandom_scrape_png(card_name, link, gen_name):
             png_url = results[0]
             # Download
             download_save(png_url, card_name, gen_name)
+            download_save(png_url, card_name, gen_name)
         except IndexError:
             print("IndexError, falling back to batspi")
             print("card_name: " + card_name + ", link: " + link + ", gen: " + gen_name)
@@ -231,7 +233,7 @@ def download_save(image_link, name, gen_name):
         with open(filename, "wb") as f:
             f.write(requests.get(image_link).content)
     except Exception as exception:
-        print("EXCEPTION OCCURED")
+        print("EXCEPTION OCCURRED")
         print(exception)
         print(image_link, name, gen_name)
 

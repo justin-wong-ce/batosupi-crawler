@@ -5,6 +5,8 @@ import re
 import os
 import json
 
+from time import sleep
+
 dictionary = {}
 
 
@@ -91,10 +93,15 @@ def scrape_all(effect_dict):
         else:
             no_tamper = True
         print(str(i) + "/" + str(len(urls)) + " initiated: " + url[0])
-        threads.append(threading.Thread(target=fandom_crawler.fandom_crawler,
-                         args=("https://battle-spirits.fandom.com" +
-                               url[0], url[1], False, no_tamper, True, threading_dicts[i])))
-        threads[i].start()
+        fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com" + url[0],
+                                      url[1], False, no_tamper, True, threading_dicts[i])
+        # threads.append(threading.Thread(target=fandom_crawler.fandom_crawler,
+        #                                 args=("https://battle-spirits.fandom.com" +
+        #                                       url[0], url[1], False, no_tamper, True, threading_dicts[i])))
+        # if i % 20 == 0:
+        #     print(f'Waiting 20 seconds for each 20 pages... (active thread count: {threading.active_count()}')
+        #     sleep(20)
+        # threads[i].start()
 
     count = 0
     while True:
@@ -110,7 +117,7 @@ def scrape_all(effect_dict):
 
 
 dictionary = scrape_all(dictionary)
-dictionary = scrape_promo(dictionary)
+# dictionary = scrape_promo(dictionary)
 print("#Card effects processed = " + str(len(dictionary)))
 
 try:

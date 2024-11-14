@@ -29,14 +29,18 @@ def get_description(nickname):
                 description = ch_dict[nickname.replace("-", "")]
             except KeyError:
                 try:
-                    nickname = nickname.split("-")
-                    description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+                    nickname = nickname.replace("RVX", "RV X")
+                    description = ch_dict[nickname]
                 except KeyError:
-                    print("KeyError on card (ch): " + nickname_save)
-                    description = "[CHINESE] Missing - new cards may not have translations yet\n" \
-                        + "If this is an old card, let us know!"
-    except:
-        print("FATAL PARSE ERROR")
+                    try:
+                        nickname = nickname.split("-")
+                        description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+                    except KeyError:
+                        print("KeyError on card (ch): " + nickname_save)
+                        description = "[CHINESE] Missing - new cards may not have translations yet\n" \
+                            + "If this is an old card, let us know!"
+    except Exception as e:
+        print(f"FATAL PARSE ERROR: {e}")
         description = "[CHI] FATAL ERROR\n"
 
     # Add english
