@@ -23,6 +23,7 @@ def get_description(nickname):
         .replace("X10TH", "10thX") \
         .replace("RV-", "RV ") \
         .replace("-SCR", "")
+    nickname = re.sub(r"P-\d+", "", nickname)
     if nickname[-1].isdigit() and nickname[-2] == '-':
         nickname = nickname[:-2]
     try:
@@ -61,6 +62,7 @@ def get_description(nickname):
         .replace("(B)", " (B)") \
         .replace("LM18-G06", "LM18-G06-X") \
         .replace("-SCR", "")
+    nickname = re.sub(r"P-\d+", "", nickname)
 
     if re.search(r"^BS4\d-\d{2}$", nickname):
         nickname = nickname.replace("-", "-0")
@@ -82,10 +84,14 @@ def get_description(nickname):
     except KeyError:
         try:
             description = description + "\n\n" + \
-                          en_dict[nickname.replace("-", "")] + "\n(Translation from Fandom Wiki)"
+                          en_dict[re.sub(r"-\d+", "", nickname)] + "\n(Translation from Fandom Wiki)"
         except KeyError:
-            print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
-            description = description + "\n\n[ENGLISH] Bad - let us know! (new cards may not have translations yet)"
+            try:
+                description = description + "\n\n" + \
+                              en_dict[nickname.replace("-", "")] + "\n(Translation from Fandom Wiki)"
+            except KeyError:
+                print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
+                description = description + "\n\n[ENGLISH] Bad - let us know! (new cards may not have translations yet)"
     description = description.replace("&amp;", "&").replace("()", "")
     return description
 
