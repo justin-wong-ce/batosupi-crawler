@@ -26,7 +26,7 @@ while True:
         url = url or "https://battle-spirits.fandom.com/wiki/" + card_gen_name
         fandom_crawler.fandom_crawler(url, card_gen_name, True, False, False, None)
     elif user_in.lower() == "h":
-        har_crawler.crawl()
+        har_crawler.har_crawl()
     elif user_in.lower() == "l":
         tabletop_name_import.tabletop_name_import(card_gen_name)
     elif user_in.lower() == "s":
