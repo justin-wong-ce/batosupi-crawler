@@ -14,84 +14,94 @@ except FileNotFoundError:
     en_dict = {}
 
 
-def get_description(nickname):
+def get_description(nickname, lang=None):
     nickname_save = nickname
-    # Add chinese
-    nickname = nickname.upper()
-    nickname = nickname.replace("\t", "") \
-        .replace("10THX-", "10thX") \
-        .replace("X10TH", "10thX") \
-        .replace("RV-", "RV ") \
-        .replace("-SCR", "")
-    nickname = re.sub(r"P-\d+", "", nickname)
-    if nickname[-1].isdigit() and nickname[-2] == '-':
-        nickname = nickname[:-2]
-    try:
+
+    description = ""
+    if not lang or lang == "CHI":
+        # Add chinese
+        nickname = nickname.upper()
+        nickname = nickname.replace("\t", "") \
+            .replace(" (A)", "(A)") \
+            .replace(" (B)", "(B)") \
+            .replace("10THX-", "10thX") \
+            .replace("X10TH", "10thX") \
+            .replace("RV-", "RV ") \
+            .replace("-D", "") \
+            .replace("-SCR", "")
+        nickname = re.sub(r"P-\d+", "", nickname)
+        if nickname[-1].isdigit() and nickname[-2] == '-':
+            nickname = nickname[:-2]
         try:
-            description = ch_dict[nickname]
-        except KeyError:
             try:
-                description = ch_dict[nickname.replace("-", "")]
+                description = ch_dict[nickname]
             except KeyError:
                 try:
-                    nickname = nickname.replace("RVX", "RV X")
-                    description = ch_dict[nickname]
+                    description = ch_dict[nickname.replace("-", "")]
                 except KeyError:
                     try:
-                        nickname = nickname.split("-")
-                        description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+                        nickname = nickname.replace("RVX", "RV X")
+                        description = ch_dict[nickname]
                     except KeyError:
-                        print("KeyError on card (ch): " + nickname_save)
-                        description = "[CHINESE] Missing - new cards may not have translations yet\n" \
-                            + "If this is an old card, let us know!"
-    except Exception as e:
-        print(f"FATAL PARSE ERROR: {e}")
-        description = "[CHI] FATAL ERROR\n"
+                        try:
+                            nickname = nickname.split("-")
+                            description = ch_dict[nickname[0] + "-" + nickname[1].zfill(3)]
+                        except KeyError:
+                            print("KeyError on card (ch): " + nickname_save)
+                            description = "[CHINESE] Missing - new cards may not have translations yet\n" \
+                                + "If this is an old card, let us know!"
+        except Exception as e:
+            print(f"FATAL PARSE ERROR: {e}")
+            description = "[CHI] FATAL ERROR\n"
 
-    # Add english
-    nickname = nickname_save
-    nickname = nickname.upper()
-    nickname = nickname.replace("\t", "") \
-        .replace("10thX-", "10thX") \
-        .replace("X10TH", "10thX") \
-        .replace("RV-", "RV") \
-        .replace("RV  ", "RV") \
-        .replace("RV ", "RV") \
-        .replace("EX-", "EX") \
-        .replace("(A)", " (A)") \
-        .replace("(B)", " (B)") \
-        .replace("LM18-G06", "LM18-G06-X") \
-        .replace("-SCR", "")
-    nickname = re.sub(r"P-\d+", "", nickname)
+    if not lang or lang == "ENG":
+        # Add english
+        nickname = nickname_save
+        nickname = nickname.upper()
+        nickname = nickname.replace("\t", "") \
+            .replace(" (A)", "(A)") \
+            .replace(" (B)", "(B)") \
+            .replace("10thX-", "10thX") \
+            .replace("X10TH", "10thX") \
+            .replace("RV-", "RV") \
+            .replace("RV  ", "RV") \
+            .replace("RV ", "RV") \
+            .replace("EX-", "EX") \
+            .replace("(A)", " (A)") \
+            .replace("(B)", " (B)") \
+            .replace("-D", "") \
+            .replace("LM18-G06", "LM18-G06-X") \
+            .replace("-SCR", "")
+        nickname = re.sub(r"P-\d+", "", nickname)
 
-    if re.search(r"^BS4\d-\d{2}$", nickname):
-        nickname = nickname.replace("-", "-0")
+        if re.search(r"^BS4\d-\d{2}$", nickname):
+            nickname = nickname.replace("-", "-0")
 
-    if nickname[-1].isdigit() and nickname[-2] == '-':
-        nickname = nickname[:-2]
+        if nickname[-1].isdigit() and nickname[-2] == '-':
+            nickname = nickname[:-2]
 
-    if nickname in no_effect_cards:
-        return ""
-    try:
-        if en_dict[nickname] == "-" or en_dict[nickname] == "":
-            return
-    except KeyError:
-        if nickname in missing_effects:
-            description = description + "\n\n" + missing_effects[nickname] + "\n(Translation by nepuUbU)"
-            return description
-    try:
-        description = description + "\n\n" + en_dict[nickname] + "\n(Translation from Fandom Wiki)"
-    except KeyError:
+        if nickname in no_effect_cards:
+            return ""
         try:
-            description = description + "\n\n" + \
-                          en_dict[re.sub(r"-\d+", "", nickname)] + "\n(Translation from Fandom Wiki)"
+            if en_dict[nickname] == "-" or en_dict[nickname] == "":
+                return
+        except KeyError:
+            if nickname in missing_effects:
+                description = description + "\n\n" + missing_effects[nickname] + "\n(Translation by nepuUbU)"
+                return description
+        try:
+            description = description + "\n\n" + en_dict[nickname] + "\n(Translation from Fandom Wiki)"
         except KeyError:
             try:
                 description = description + "\n\n" + \
-                              en_dict[nickname.replace("-", "")] + "\n(Translation from Fandom Wiki)"
+                              en_dict[re.sub(r"-\d+", "", nickname)] + "\n(Translation from Fandom Wiki)"
             except KeyError:
-                print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
-                description = description + "\n\n[ENGLISH] Bad - let us know! (new cards may not have translations yet)"
+                try:
+                    description = description + "\n\n" + \
+                                  en_dict[nickname.replace("-", "")] + "\n(Translation from Fandom Wiki)"
+                except KeyError:
+                    print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
+                    description = description + "\n\n[ENGLISH] Bad - let us know! (new cards may not have translations yet)"
     description = description.replace("&amp;", "&").replace("()", "")
     return description
 
