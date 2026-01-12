@@ -56,17 +56,17 @@ def scrape_promo(effect_dict):
     links = set(links)
 
     for card in cards:
-        # fandom_crawler.fandom_scrape_effect(card[0], card[1], effect_dict)
-        threading.Thread(target=fandom_crawler.fandom_scrape_effect, args=(card[0], card[1], effect_dict)).start()
+        fandom_crawler.fandom_scrape_effect(card[0], card[1], effect_dict)
+        # threading.Thread(target=fandom_crawler.fandom_scrape_effect, args=(card[0], card[1], effect_dict)).start()
 
-    count = 0
-    while True:
-        new = threading.active_count()
-        if new == 1:
-            break
-        elif new != count:
-            count = new
-            print(str(count) + " threads in progress")
+    # count = 0
+    # while True:
+    #     new = threading.active_count()
+    #     if new == 1:
+    #         break
+    #     elif new != count:
+    #         count = new
+    #         print(str(count) + " threads in progress")
 
     for link in links:
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com" + link[1], link[0], False, True, False, None)
@@ -94,7 +94,7 @@ def scrape_all(effect_dict):
             no_tamper = True
         print(str(i) + "/" + str(len(urls)) + " initiated: " + url[0])
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com" + url[0],
-                                      url[1], False, no_tamper, True, threading_dicts[i])
+                                      url[1], False, no_tamper, False, threading_dicts[i])
         # threads.append(threading.Thread(target=fandom_crawler.fandom_crawler,
         #                                 args=("https://battle-spirits.fandom.com" +
         #                                       url[0], url[1], False, no_tamper, True, threading_dicts[i])))
@@ -103,14 +103,14 @@ def scrape_all(effect_dict):
         #     sleep(20)
         # threads[i].start()
 
-    count = 0
-    while True:
-        new = threading.active_count()
-        if new == 1:
-            break
-        elif new != count:
-            count = new
-            print(str(count) + " threads in progress")
+    # count = 0
+    # while True:
+    #     new = threading.active_count()
+    #     if new == 1:
+    #         break
+    #     elif new != count:
+    #         count = new
+    #         print(str(count) + " threads in progress")
     for link_dict in threading_dicts:
         effect_dict.update(link_dict)
     return effect_dict

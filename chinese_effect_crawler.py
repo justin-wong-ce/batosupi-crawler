@@ -133,8 +133,10 @@ def scrape_chinese_effect(gen_name):
 # # If only need a certain generation of card translation, just enter the new generation card list form link.
 # # Example: https://battlespiritsnova.com/search.php?input_set=BS65
 # # url_list = ['https://battlespiritsnova.com/search.php?input_set=CB30']
-# url_list_test = ['https://battlespiritsnova.com/search.php?input_sign=%3E=&input_cost=0']
-#
+
+# DL all
+url_list_test = ['https://battlespiritsnova.com/search.php?input_sign=%3E=&input_cost=0']
+
 # try:
 #     with open(f'{os.path.dirname(os.path.realpath(__file__))}/effect_json/chinese.json', 'r', encoding='utf-8') as f:
 #         card_list_test = json.load(f)
