@@ -21,8 +21,8 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
-        r"?:X|XX|10thX|RV|RVX|RVXX|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|AX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
+        r"?:X|XX|10thX|RV|RVX|RVXX|RVTX|T|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD|AX)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
         r"([^\"]*)\".*/a>")
     rows = re.findall(pattern, html_text)
 
@@ -96,7 +96,7 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
 
 
 # DOM Element Remove
-def filter_dom(instr):
+def convert_dom(instr):
     ret = ""
     ind = 0
     after_newline = True
@@ -105,6 +105,10 @@ def filter_dom(instr):
         if instr[ind:ind+4] == "<br>":
             ret = ret + "\n"
             ind = ind + 4
+            after_newline = True
+        elif instr[ind:ind+12] == "<br /><br />":
+            ret = ret + "\n"
+            ind = ind + 12
             after_newline = True
         elif instr[ind:ind+6] == "</div>":
             ret = ret + "\n"
@@ -115,7 +119,7 @@ def filter_dom(instr):
             ind = instr[ind:].index(">") + ind + 1
         elif instr[ind:ind+4] == "&amp;":
             ret = ret + "&"
-        elif after_newline is True:
+        elif after_newline:
             if instr[ind] != " ":
                 ret = ret + instr[ind]
                 after_newline = False
@@ -138,7 +142,53 @@ def fandom_scrape_effect(card_name, link, effect_dict):
     link = "https://battle-spirits.fandom.com" + link
     html_text = requests.get(link).text
 
-    # regex pattern and parse
+    # TODO: refactor to function - find card name
+    pattern = re.compile(
+        r"<title>(.*) \| Battle Spirits Wiki \| Fandom</title>"
+    )
+    results = re.findall(pattern, html_text)
+    if len(results) == 0:
+        print(f"ERROR: Cannot find card name for {card_name}")
+        return
+    dscrp_string = f"【{convert_dom(results[0])}】"
+
+    # TODO: refactor to function - find family name
+    pattern = re.compile(
+        r"title=\"Category:Magic\""
+    )
+    results = re.findall(pattern, html_text)
+    is_magic = False if len(results) == 0 else True
+
+    pattern = re.compile(
+        r"Families.*\n.*\n<td>(.*)\n"
+    )
+    results = re.findall(pattern, html_text)
+
+    family_found = False
+    if len(results) == 0 and is_magic:
+        print(f"INFO: No family found for magic card for {card_name}")
+    elif len(results) == 0:
+        print(f"WARNING: Non-magic card without family found for {card_name}")
+    else:
+        family_found = True
+
+    if family_found:
+        for idx, result in enumerate(results):
+            families_list = result.split(", ")
+            result = ""
+            for j, family in enumerate(families_list):
+                family = re.findall(r"title=\"(.*)\">", family)[0]
+                result = family if not result else f"{result}, {family}"
+                results[idx] = result
+
+        if card_name.find("RV") != -1:
+            try:
+                results[0] = results[1]
+            except:
+                pass
+        dscrp_string = dscrp_string + f"\n({convert_dom(results[0])})"
+
+    # regex pattern and parse effects
     pattern = re.compile(
         r"<th>Card Effects\n.*[\s]*.*[\s]*(.*)"
     )
@@ -162,6 +212,8 @@ def fandom_scrape_effect(card_name, link, effect_dict):
         )
         results = re.findall(pattern, html_text)
         ind = ind + 1
+    if len(results) != 0:
+        dscrp_string = dscrp_string + convert_dom(results[0])
 
     try:
         if results[0].find("{effect}") != -1:
@@ -179,7 +231,7 @@ def fandom_scrape_effect(card_name, link, effect_dict):
             card_name = card_name.replace("PX-", "PX19-")
         elif card_name == "CP17-X07":
             card_name = "CP14-X07"
-        effect_dict.update({card_name: filter_dom(results[0])})
+        effect_dict.update({card_name: dscrp_string})
 
     except IndexError:
         effect_dict.update({card_name: "-"})
@@ -348,13 +400,13 @@ no_effect_cards = {
 
 # print("\n\ntest 1: spirit - burst Alex:\n")
 # fandom_scrape_png("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
-# fandom_scrape_effect("BS52-RV007", "/wiki/The_ChosenSearcher_Alex")
+# fandom_scrape_effect("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", effect_test)
 # print("\n\ntest 2: magic - brave draw:\n")
 # fandom_scrape_png("BS48-RV007", "/wiki/Brave_Draw", "BS48")
 # fandom_scrape_effect("BS48-RV007", "/wiki/Brave_Draw", effect_test)
 # print("\n\ntest 3: grandwalker nexus: mai:\n")
 # fandom_scrape_png("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
-# fandom_scrape_effect("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-")
+# fandom_scrape_effect("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", effect_test)
 # print("\n\ntest 4: mirage spirit: begasusmachinebeast pegaspace:\n")
 # fandom_scrape_png("BS59-031", "/wiki/The_PegasusMachineBeast_Pegaspace", "BS59")
 # fandom_scrape_effect("BS59-031", "/wiki/The_PegasusMachineBeast_Pegaspace")
