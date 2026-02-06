@@ -25,12 +25,15 @@ def get_description(nickname, lang=None):
             .replace(" (A)", "(A)") \
             .replace(" (B)", "(B)") \
             .replace("10THX-", "10thX") \
+            .replace("10THX", "10thX") \
             .replace("X10TH", "10thX") \
             .replace("RV-", "RV ") \
             .replace("-D", "") \
             .replace("-SCR", "")
         nickname = re.sub(r"P-\d+", "", nickname)
         if nickname[-1].isdigit() and nickname[-2] == '-':
+            nickname = nickname[:-2]
+        if nickname[-1].isdigit() and nickname[-2] == 'P':
             nickname = nickname[:-2]
         try:
             try:
@@ -61,6 +64,7 @@ def get_description(nickname, lang=None):
         nickname = nickname.replace("\t", "") \
             .replace(" (A)", "(A)") \
             .replace(" (B)", "(B)") \
+            .replace("10THX", "10thX") \
             .replace("10thX-", "10thX") \
             .replace("X10TH", "10thX") \
             .replace("RV-", "RV") \
@@ -78,6 +82,8 @@ def get_description(nickname, lang=None):
             nickname = nickname.replace("-", "-0")
 
         if nickname[-1].isdigit() and nickname[-2] == '-':
+            nickname = nickname[:-2]
+        if nickname[-1].isdigit() and nickname[-2] == 'P':
             nickname = nickname[:-2]
 
         if nickname in no_effect_cards:
@@ -106,9 +112,9 @@ def get_description(nickname, lang=None):
     return description
 
 
-def tabletop_name_import(deck_name):
+def tabletop_name_import(deck_name, lang=None):
     # Edits Tabletop Save file to import names
-    f1 = open(userSavesPath + "TS_Save_-.json", "r", encoding="utf-8")
+    f1 = open(userSavesPath + f"TS_Save_-.json", "r", encoding="utf-8")
     deck_folder = "decks"
     json_contents = f1.read()
     f1.close()
@@ -149,10 +155,10 @@ def tabletop_name_import(deck_name):
             if cards[i]['Nickname'] == 'BS41-X07':
                 continue
 
-            cards[i]["Description"] = get_description(card_nickname)
+            cards[i]["Description"] = get_description(card_nickname, lang=lang)
         new_savefile_contents = json.dumps(save_object, indent=2)
 
-    wf = open(userSavesPath + "TS_Save_-.json", "w", encoding="utf-8")
+    wf = open(userSavesPath + f"TS_Save_-{lang}.json", "w", encoding="utf-8")
     wf.write(new_savefile_contents)
     wf.close()
     print("Imported")

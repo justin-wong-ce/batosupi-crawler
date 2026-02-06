@@ -28,7 +28,12 @@ while True:
     elif user_in.lower() == "h":
         har_crawler.har_crawl()
     elif user_in.lower() == "l":
-        tabletop_name_import.tabletop_name_import(card_gen_name)
+        lang = input("Language (ENG|CHI|BI):")
+        if lang.upper() not in ["ENG", "CHI", "BI"]:
+            print("Bad input, please retry")
+            continue
+        lang = None if lang == "BI" else lang
+        tabletop_name_import.tabletop_name_import(card_gen_name, lang=lang.upper())
     elif user_in.lower() == "s":
         print("Scraping English effects...")
         fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + card_gen_name,

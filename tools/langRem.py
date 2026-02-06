@@ -30,3 +30,4 @@ def keep_only_lang(lang):
         json.dump(tt_dict, file, ensure_ascii=False, indent=4)
 
 keep_only_lang("CHI")
+keep_only_lang("ENG")
