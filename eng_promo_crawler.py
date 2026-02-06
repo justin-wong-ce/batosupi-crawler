@@ -115,19 +115,19 @@ def scrape_all(effect_dict):
         effect_dict.update(link_dict)
     return effect_dict
 
-
-dictionary = scrape_all(dictionary)
-# dictionary = scrape_promo(dictionary)
-print("#Card effects processed = " + str(len(dictionary)))
-
-try:
-    with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "r", encoding='utf-8') as f:
-        effect_dict_curr = json.load(f)
-except FileNotFoundError:
-    print("File not found")
-    pass
-
-dictionary.update(effect_dict_curr)
-
-with open(f'{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json', 'w', encoding='utf-8') as f:
-    json.dump(dictionary, f, ensure_ascii=False)
+#
+# dictionary = scrape_all(dictionary)
+# # dictionary = scrape_promo(dictionary)
+# print("#Card effects processed = " + str(len(dictionary)))
+#
+# try:
+#     with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "r", encoding='utf-8') as f:
+#         effect_dict_curr = json.load(f)
+# except FileNotFoundError:
+#     print("File not found")
+#     pass
+#
+# dictionary.update(effect_dict_curr)
+#
+# with open(f'{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json', 'w', encoding='utf-8') as f:
+#     json.dump(dictionary, f, ensure_ascii=False)
