@@ -2,33 +2,61 @@ import json
 import os
 import re
 import requests
-import threading
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 import time
 
 
+def get_sel_options(no_img=True):
+    # Blanket selenium options
+    sel_opts_base = Options()
+    sel_opts_base.add_argument("--disable-extensions")
+    if no_img:
+        sel_opts_base.add_argument("--disable-images")  # Disable images
+    sel_opts_base.add_argument("--disable-css")  # Disable CSS
+    sel_opts_base.add_argument("--disable-features=DisableLoadExtensionCommandLineSwitch")
+    sel_opts_base.page_load_strategy = 'eager'  # Load DOM only [9]
+    prefs = {
+        "profile.managed_default_content_settings.images": 2,
+        "profile.default_content_setting_values.javascript": 2
+    }
+    sel_opts_base.add_experimental_option("prefs", prefs)
+    return sel_opts_base
+
 
 # JPG DL FOR FANDOM
-def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, effect_dict):
-    if not is_img_dl and not effect_threading:
+def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_dict):
+    if not is_img_dl:
         effect_dict = {}
+
+    # browsers
+    browser = webdriver.Chrome(options=get_sel_options())
+    png_browser = None
 
     # Scrape link for links to individual cards
     try:
-        html_text = requests.get(link).text
+        browser.get(link)
+        input("Press any key when captcha passed...")
+        html_text = browser.page_source
     except:
         print("bad link")
         return
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|AX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|AX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM|26RSD)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
         r"?:X|XX|10thX|RV|RVX|RVXX|RVTX|T|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD|AX)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
         r"([^\"]*)\".*/a>")
     rows = re.findall(pattern, html_text)
 
     # For each card, scrape page for png url
     txt_print = []
-    threads = []
+
+    if is_img_dl:
+        png_browser = webdriver.Chrome(options=get_sel_options(no_img=False))
+        input("Press any key when captcha passed...")
+        browser.quit()
+
     for i in range(len(rows)):
         url = rows[i][1]
         if url.find("https") != -1:
@@ -57,17 +85,12 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
             # Append generation name as default
             card_name = gen_name + "-" + card_name
         if is_img_dl:
-            threads.append(threading.Thread(target=fandom_scrape_png, args=(card_name, url, gen_name)))
+            fandom_scrape_png(card_name, url, gen_name, png_browser)
         else:
-            threads.append(threading.Thread(target=fandom_scrape_effect, args=(card_name, url, effect_dict)))
-        threads[i].start()
+            fandom_scrape_effect(card_name, url, effect_dict, browser)
 
         if card_name not in txt_print:
             txt_print.append(card_name)
-
-    # Wait for threads to be done
-    for thread in threads:
-        thread.join()
     
     if is_img_dl:
         # Auto create the .txt file in decks
@@ -80,19 +103,21 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
                 if i < len(txt_print) - 1:
                     txtFile.write("\n")
             txtFile.close()
-    elif not effect_threading:
-        try:
-            with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json",
-                      "r", encoding="utf-8") as f:
-                effect_dict_curr = json.load(f)
-        except FileNotFoundError:
-            print("File not found")
-            effect_dict_curr = {}
-            pass
-        # Update effects .json
-        effect_dict_curr.update(effect_dict)
-        with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
-            json.dump(effect_dict_curr, f, ensure_ascii=False)
+    try:
+        with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json",
+                  "r", encoding="utf-8") as f:
+            effect_dict_curr = json.load(f)
+    except FileNotFoundError:
+        print("File not found")
+        effect_dict_curr = {}
+        pass
+    # Update effects .json
+    effect_dict_curr.update(effect_dict)
+    with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
+        json.dump(effect_dict_curr, f, ensure_ascii=False)
+    browser.quit()
+    if png_browser:
+        png_browser.quit()
 
 
 # DOM Element Remove
@@ -138,9 +163,10 @@ reg_str = [
 
 
 # ENG EFFECT CRAWLER
-def fandom_scrape_effect(card_name, link, effect_dict):
+def fandom_scrape_effect(card_name, link, effect_dict, browser):
     link = "https://battle-spirits.fandom.com" + link
-    html_text = requests.get(link).text
+    browser.get(link)
+    html_text = browser.page_source
 
     # TODO: refactor to function - find card name
     pattern = re.compile(
@@ -239,14 +265,15 @@ def fandom_scrape_effect(card_name, link, effect_dict):
             print("NO EFFECT FOUND: " + card_name)
 
 
-def fandom_scrape_png(card_name, link, gen_name):
+def fandom_scrape_png(card_name, link, gen_name, browser):
     # Use batspi for RV cards + BSC22
     if gen_name == "BSC22":
         batspi_scrape_png(card_name, gen_name)
     else:
         # Use fandom to get img
         link = "https://battle-spirits.fandom.com" + link
-        html_text = requests.get(link).text
+        browser.get(link)
+        html_text = browser.page_source
 
         # regex pattern and parse
         if card_name.find("RV") != -1:

@@ -24,7 +24,7 @@ while True:
     if user_in.lower() == "d":
         url = input("Page link (LEAVE EMPTY TO AUTO GENERATE): ")
         url = url or "https://battle-spirits.fandom.com/wiki/" + card_gen_name
-        fandom_crawler.fandom_crawler(url, card_gen_name, True, False, False, None)
+        fandom_crawler.fandom_crawler(url, card_gen_name, True, False, None)
     elif user_in.lower() == "h":
         har_crawler.har_crawl()
     elif user_in.lower() == "l":
@@ -35,12 +35,19 @@ while True:
         lang = None if lang == "BI" else lang
         tabletop_name_import.tabletop_name_import(card_gen_name, lang=lang.upper())
     elif user_in.lower() == "s":
-        print("Scraping English effects...")
-        fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + card_gen_name,
-                                      card_gen_name, False, False, False, None)
-        print("DONE\nScraping Chinese effects...")
-        chinese_effect_crawler.scrape_chinese_effect(card_gen_name)
-        print("DONE")
+        lang = input("Language (ENG|CHI|BI):")
+        if lang.upper() not in ["ENG", "CHI", "BI"]:
+            print("Bad input, please retry")
+            continue
+        if lang in ["ENG", "BI"]:
+            print("Scraping English effects...")
+            fandom_crawler.fandom_crawler("https://battle-spirits.fandom.com/wiki/" + card_gen_name,
+                                          card_gen_name, False, False, None)
+            print("DONE")
+        if lang in ["CHI", "BI"]:
+            print("Scraping Chinese effects...")
+            chinese_effect_crawler.scrape_chinese_effect(card_gen_name)
+            print("DONE")
 
     userCont = input("Continue? [(Y/y)/(N/n)]: ")
     if userCont.lower() == "n":
