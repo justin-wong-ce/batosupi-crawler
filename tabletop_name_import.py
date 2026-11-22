@@ -28,8 +28,10 @@ def get_description(nickname, lang=None):
             .replace("10THX", "10thX") \
             .replace("X10TH", "10thX") \
             .replace("RV-", "RV ") \
-            .replace("-D", "") \
-            .replace("-SCR", "")
+            .replace("-SCR", "") \
+            .replace("X13SP-OL", "X13")
+        if nickname.endswith("-D"):
+            nickname.replace("-D", "")
         nickname = re.sub(r"P-\d+", "", nickname)
         if nickname[-1].isdigit() and nickname[-2] == '-':
             nickname = nickname[:-2]
@@ -73,9 +75,11 @@ def get_description(nickname, lang=None):
             .replace("EX-", "EX") \
             .replace("(A)", " (A)") \
             .replace("(B)", " (B)") \
-            .replace("-D", "") \
+            .replace("X13SP-OL", "X13") \
             .replace("LM18-G06", "LM18-G06-X") \
             .replace("-SCR", "")
+        if nickname.endswith("-D"):
+            nickname.replace("-D", "")
         nickname = re.sub(r"P-\d+", "", nickname)
 
         if re.search(r"^BS4\d-\d{2}$", nickname):
@@ -95,15 +99,17 @@ def get_description(nickname, lang=None):
             if nickname in missing_effects:
                 description = description + "\n\n" + missing_effects[nickname] + "\n(Translation by nepuUbU)"
                 return description
+        if description != "":
+            description = description + "\n\n"
         try:
-            description = description + "\n\n" + en_dict[nickname] + "\n(Translation from Fandom Wiki)"
+            description = description + en_dict[nickname] + "\n(Translation from Fandom Wiki)"
         except KeyError:
             try:
-                description = description + "\n\n" + \
+                description = description + \
                               en_dict[re.sub(r"-\d+", "", nickname)] + "\n(Translation from Fandom Wiki)"
             except KeyError:
                 try:
-                    description = description + "\n\n" + \
+                    description = description + \
                                   en_dict[nickname.replace("-", "")] + "\n(Translation from Fandom Wiki)"
                 except KeyError:
                     print("KeyError on card (en): " + nickname_save + ", post edit: " + nickname)
