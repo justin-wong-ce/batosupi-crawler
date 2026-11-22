@@ -6,6 +6,7 @@ import time
 
 THREADING_ON = True
 
+
 def download_image(url, filepath):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
@@ -16,6 +17,7 @@ def download_image(url, filepath):
         print("EXCEPTION OCCURRED")
         print(exception)
         print(url, filepath)
+
 
 def har_crawl():
     # Read HAR file (`./har.json`)
@@ -31,7 +33,7 @@ def har_crawl():
         raise ValueError("No matching URLs found - please check HAR file is correct.")
 
     # Sort url (asc)
-    urls = sorted(urls)
+    urls = list(set(sorted(urls)))
 
     # Extract card name from each url
     # Download card and save
@@ -55,14 +57,19 @@ def har_crawl():
             card_name = f"{gen_name}-{card_name}"
         if card_name[0].isdigit():
             card_name = "BS" + card_name
+        card_name = card_name.replace("_DUMMY", "")
         card_name = card_name.replace("_", "-")
-        if card_name[-2:] in ["-D", "-d"]:
+        if card_name[-2:] == "D":
             card_name = card_name[:-2]
-        if card_name[-1] in ["P", "p"]:
+        if card_name[-1] == "P":
             card_name = card_name[:-1] + "-SCR"
+        if card_name[-1] == "P":
+            card_name = card_name[:-1]
+        card_name = card_name.replace("RVX", "RV-X")
 
-        if card_name not in txt_print:
-            txt_print.append(card_name)
+        if card_name in txt_print:
+            continue
+        txt_print.append(card_name)
 
         filename = "downloads/" + gen_name + "/assets/" + card_name + ".jpg"
 
@@ -96,6 +103,5 @@ def har_crawl():
         txtFile.close()
     print(f"Done processing set {gen_name}")
 
-
 # Local testing
-har_crawl()
+# har_crawl()

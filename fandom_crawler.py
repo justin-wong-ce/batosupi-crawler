@@ -2,33 +2,64 @@ import json
 import os
 import re
 import requests
-import threading
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 import time
 
 
+def get_sel_options(no_img=True):
+    # Blanket selenium options
+    sel_opts_base = Options()
+    sel_opts_base.add_argument("--disable-extensions")
+    sel_opts_base.add_argument("--enable-javascript")
+    if no_img:
+        sel_opts_base.add_argument("--disable-images")  # Disable images
+    sel_opts_base.add_argument("--disable-css")  # Disable CSS
+    sel_opts_base.add_argument("--disable-features=DisableLoadExtensionCommandLineSwitch")
+    prefs = {
+        "profile.managed_default_content_settings.images": 2,
+        "profile.default_content_setting_values.javascript": 2
+    }
+    sel_opts_base.add_experimental_option("prefs", prefs)
+    return sel_opts_base
+
 
 # JPG DL FOR FANDOM
-def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, effect_dict):
-    if not is_img_dl and not effect_threading:
+def fandom_crawler(link, gen_name, is_img_dl=False, no_name_tamper=False, effect_dict=None):
+    if not is_img_dl:
         effect_dict = {}
+
+    # browsers
+    browser = webdriver.Chrome(options=get_sel_options())
+    png_browser = None
 
     # Scrape link for links to individual cards
     try:
-        html_text = requests.get(link).text
+        browser.get(link)
+        input("Press any key when captcha passed...")
+
+        # If you want to hack in a particular HTML chunk for processing, this is the place
+        html_text = browser.page_source
     except:
         print("bad link")
         return
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
-        r"?:X|XX|10thX|RV|RVX|RVXX|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|AX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM|26RSD)"
+        r"\d\d\d?|KF)(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|RVX|RVXX|RVTX|T|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|"
+        r"DD|AX)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
         r"([^\"]*)\".*/a>")
     rows = re.findall(pattern, html_text)
 
     # For each card, scrape page for png url
     txt_print = []
-    threads = []
+
+    if is_img_dl:
+        png_browser = webdriver.Chrome(options=get_sel_options(no_img=False))
+        input("Press any key when captcha passed...")
+        browser.quit()
+
     for i in range(len(rows)):
         url = rows[i][1]
         if url.find("https") != -1:
@@ -57,17 +88,12 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
             # Append generation name as default
             card_name = gen_name + "-" + card_name
         if is_img_dl:
-            threads.append(threading.Thread(target=fandom_scrape_png, args=(card_name, url, gen_name)))
+            fandom_scrape_png(card_name, url, gen_name, png_browser)
         else:
-            threads.append(threading.Thread(target=fandom_scrape_effect, args=(card_name, url, effect_dict)))
-        threads[i].start()
+            fandom_scrape_effect(card_name, url, effect_dict, browser)
 
         if card_name not in txt_print:
             txt_print.append(card_name)
-
-    # Wait for threads to be done
-    for thread in threads:
-        thread.join()
     
     if is_img_dl:
         # Auto create the .txt file in decks
@@ -80,23 +106,25 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_threading, 
                 if i < len(txt_print) - 1:
                     txtFile.write("\n")
             txtFile.close()
-    elif not effect_threading:
-        try:
-            with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json",
-                      "r", encoding="utf-8") as f:
-                effect_dict_curr = json.load(f)
-        except FileNotFoundError:
-            print("File not found")
-            effect_dict_curr = {}
-            pass
-        # Update effects .json
-        effect_dict_curr.update(effect_dict)
-        with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
-            json.dump(effect_dict_curr, f, ensure_ascii=False)
+    try:
+        with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json",
+                  "r", encoding="utf-8") as f:
+            effect_dict_curr = json.load(f)
+    except FileNotFoundError:
+        print("File not found")
+        effect_dict_curr = {}
+        pass
+    # Update effects .json
+    effect_dict_curr.update(effect_dict)
+    with open(f"{os.path.dirname(os.path.realpath(__file__))}/effect_json/english.json", "w", encoding="utf-8") as f:
+        json.dump(effect_dict_curr, f, ensure_ascii=False)
+    browser.quit()
+    if png_browser:
+        png_browser.quit()
 
 
 # DOM Element Remove
-def filter_dom(instr):
+def convert_dom(instr):
     ret = ""
     ind = 0
     after_newline = True
@@ -105,6 +133,10 @@ def filter_dom(instr):
         if instr[ind:ind+4] == "<br>":
             ret = ret + "\n"
             ind = ind + 4
+            after_newline = True
+        elif instr[ind:ind+12] == "<br /><br />":
+            ret = ret + "\n"
+            ind = ind + 12
             after_newline = True
         elif instr[ind:ind+6] == "</div>":
             ret = ret + "\n"
@@ -115,7 +147,7 @@ def filter_dom(instr):
             ind = instr[ind:].index(">") + ind + 1
         elif instr[ind:ind+4] == "&amp;":
             ret = ret + "&"
-        elif after_newline is True:
+        elif after_newline:
             if instr[ind] != " ":
                 ret = ret + instr[ind]
                 after_newline = False
@@ -134,11 +166,58 @@ reg_str = [
 
 
 # ENG EFFECT CRAWLER
-def fandom_scrape_effect(card_name, link, effect_dict):
+def fandom_scrape_effect(card_name, link, effect_dict, browser):
     link = "https://battle-spirits.fandom.com" + link
-    html_text = requests.get(link).text
+    browser.get(link)
+    html_text = browser.page_source
 
-    # regex pattern and parse
+    # TODO: refactor to function - find card name
+    pattern = re.compile(
+        r"<title>(.*) \| Battle Spirits Wiki \| Fandom</title>"
+    )
+    results = re.findall(pattern, html_text)
+    if len(results) == 0:
+        print(f"ERROR: Cannot find card name for {card_name}")
+        return
+    dscrp_string = f"【{convert_dom(results[0])}】"
+
+    # TODO: refactor to function - find family name
+    pattern = re.compile(
+        r"title=\"Category:Magic\""
+    )
+    results = re.findall(pattern, html_text)
+    is_magic = False if len(results) == 0 else True
+
+    pattern = re.compile(
+        r"Families.*\n.*\n<td>(.*)\n"
+    )
+    results = re.findall(pattern, html_text)
+
+    family_found = False
+    if len(results) == 0 and is_magic:
+        print(f"INFO: No family found for magic card for {card_name}")
+    elif len(results) == 0:
+        print(f"WARNING: Non-magic card without family found for {card_name}")
+    else:
+        family_found = True
+
+    if family_found:
+        for idx, result in enumerate(results):
+            families_list = result.split(", ")
+            result = ""
+            for j, family in enumerate(families_list):
+                family = re.findall(r"title=\"(.*)\">", family)[0]
+                result = family if not result else f"{result}, {family}"
+                results[idx] = result
+
+        if card_name.find("RV") != -1:
+            try:
+                results[0] = results[1]
+            except:
+                pass
+        dscrp_string = dscrp_string + f"\n({convert_dom(results[0])})"
+
+    # regex pattern and parse effects
     pattern = re.compile(
         r"<th>Card Effects\n.*[\s]*.*[\s]*(.*)"
     )
@@ -162,6 +241,8 @@ def fandom_scrape_effect(card_name, link, effect_dict):
         )
         results = re.findall(pattern, html_text)
         ind = ind + 1
+    if len(results) != 0:
+        dscrp_string = dscrp_string + convert_dom(results[0])
 
     try:
         if results[0].find("{effect}") != -1:
@@ -179,7 +260,7 @@ def fandom_scrape_effect(card_name, link, effect_dict):
             card_name = card_name.replace("PX-", "PX19-")
         elif card_name == "CP17-X07":
             card_name = "CP14-X07"
-        effect_dict.update({card_name: filter_dom(results[0])})
+        effect_dict.update({card_name: dscrp_string})
 
     except IndexError:
         effect_dict.update({card_name: "-"})
@@ -187,14 +268,15 @@ def fandom_scrape_effect(card_name, link, effect_dict):
             print("NO EFFECT FOUND: " + card_name)
 
 
-def fandom_scrape_png(card_name, link, gen_name):
+def fandom_scrape_png(card_name, link, gen_name, browser):
     # Use batspi for RV cards + BSC22
     if gen_name == "BSC22":
         batspi_scrape_png(card_name, gen_name)
     else:
         # Use fandom to get img
         link = "https://battle-spirits.fandom.com" + link
-        html_text = requests.get(link).text
+        browser.get(link)
+        html_text = browser.page_source
 
         # regex pattern and parse
         if card_name.find("RV") != -1:
@@ -348,13 +430,13 @@ no_effect_cards = {
 
 # print("\n\ntest 1: spirit - burst Alex:\n")
 # fandom_scrape_png("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", "BS52")
-# fandom_scrape_effect("BS52-RV007", "/wiki/The_ChosenSearcher_Alex")
+# fandom_scrape_effect("BS52-RV007", "/wiki/The_ChosenSearcher_Alex", effect_test)
 # print("\n\ntest 2: magic - brave draw:\n")
 # fandom_scrape_png("BS48-RV007", "/wiki/Brave_Draw", "BS48")
 # fandom_scrape_effect("BS48-RV007", "/wiki/Brave_Draw", effect_test)
 # print("\n\ntest 3: grandwalker nexus: mai:\n")
 # fandom_scrape_png("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", "SD51")
-# fandom_scrape_effect("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-")
+# fandom_scrape_effect("SD51-CP01", "/wiki/Viole_Mai_-Mazoku_Side-", effect_test)
 # print("\n\ntest 4: mirage spirit: begasusmachinebeast pegaspace:\n")
 # fandom_scrape_png("BS59-031", "/wiki/The_PegasusMachineBeast_Pegaspace", "BS59")
 # fandom_scrape_effect("BS59-031", "/wiki/The_PegasusMachineBeast_Pegaspace")
@@ -368,5 +450,5 @@ no_effect_cards = {
 # fandom_scrape_effect("BS56-058", "/wiki/The_SpacePirateOperator_Lisitsa", effect_test)
 # fandom_scrape_effect("dfg", "/wiki/Atomic_Breath", effect_test)
 # print(effect_test)
-# fandom_crawler('https://battle-spirits.fandom.com/wiki/Battle_Spirits_Premium_Diva_BOX:_Diva_Halloween_Festival',
-#                'PB15', True, False, False, None)
+# fandom_crawler('https://battle-spirits.fandom.com/wiki/Promo_Cards/Promo_X-Rares',
+#                '', False, False, None)
