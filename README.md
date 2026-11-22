@@ -3,7 +3,7 @@ Image and effect translation crawler + Tabletop Simulator importer for Battle Sp
 https://steamcommunity.com/sharedfiles/filedetails/?id=1629315994
 
 ## Pre-requisites
-- Python >= 3.2, >= 3.7 is recommended 
+- Python >= 3.7 is recommended 
 - Tabletop Simulator (Only for importing to Tabletop Simulator)
 - TS-DeckBuilder.exe, located in `YOUR_TABLETOP_INSTALLATION_FOLDER/Modding/` (Only for importing to Tabletop Simulator)
 

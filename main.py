@@ -32,8 +32,8 @@ while True:
         if lang.upper() not in ["ENG", "CHI", "BI"]:
             print("Bad input, please retry")
             continue
-        lang = None if lang == "BI" else lang
-        tabletop_name_import.tabletop_name_import(card_gen_name, lang=lang.upper())
+        lang = None if lang == "BI" else lang.upper()
+        tabletop_name_import.tabletop_name_import(card_gen_name, lang=lang)
     elif user_in.lower() == "s":
         lang = input("Language (ENG|CHI|BI):")
         if lang.upper() not in ["ENG", "CHI", "BI"]:

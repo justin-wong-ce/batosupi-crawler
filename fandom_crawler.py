@@ -11,11 +11,11 @@ def get_sel_options(no_img=True):
     # Blanket selenium options
     sel_opts_base = Options()
     sel_opts_base.add_argument("--disable-extensions")
+    sel_opts_base.add_argument("--enable-javascript")
     if no_img:
         sel_opts_base.add_argument("--disable-images")  # Disable images
     sel_opts_base.add_argument("--disable-css")  # Disable CSS
     sel_opts_base.add_argument("--disable-features=DisableLoadExtensionCommandLineSwitch")
-    sel_opts_base.page_load_strategy = 'eager'  # Load DOM only [9]
     prefs = {
         "profile.managed_default_content_settings.images": 2,
         "profile.default_content_setting_values.javascript": 2
@@ -25,7 +25,7 @@ def get_sel_options(no_img=True):
 
 
 # JPG DL FOR FANDOM
-def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_dict):
+def fandom_crawler(link, gen_name, is_img_dl=False, no_name_tamper=False, effect_dict=None):
     if not is_img_dl:
         effect_dict = {}
 
@@ -37,6 +37,8 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_dict):
     try:
         browser.get(link)
         input("Press any key when captcha passed...")
+
+        # If you want to hack in a particular HTML chunk for processing, this is the place
         html_text = browser.page_source
     except:
         print("bad link")
@@ -44,8 +46,9 @@ def fandom_crawler(link, gen_name, is_img_dl, no_name_tamper, effect_dict):
 
     # regex pattern and parse
     pattern = re.compile(
-        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|AX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM|26RSD)\d\d\d?|KF)(?: \([AB]\))?-?)?(?:("
-        r"?:X|XX|10thX|RV|RVX|RVXX|RVTX|T|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|DD|AX)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
+        r"\s<td>((?:(?:(?:(?:(?:BSC|BS|SD|PC|CP|GX|TCP|NX|TX|XX|AX|RV|SP|CX|CB|PB|RVX|KF|LM|SJ|PX|P|CBX|LM|26RSD)"
+        r"\d\d\d?|KF)(?: \([AB]\))?-?)?(?:(?:X|XX|10thX|RV|RVX|RVXX|RVTX|T|TX|TCP|NX|CP|CX|G|XV|U|D|H|SP|A|XA|XXA|"
+        r"DD|AX)?\d?\d\d)(?:\s?\([AB]\))?(?:[RAEDTS])?(?:-X)?)|(?:\d\d-EXG\d\d)))\s*</td>\s*<td><a [^>]*href=\""
         r"([^\"]*)\".*/a>")
     rows = re.findall(pattern, html_text)
 
@@ -447,5 +450,5 @@ no_effect_cards = {
 # fandom_scrape_effect("BS56-058", "/wiki/The_SpacePirateOperator_Lisitsa", effect_test)
 # fandom_scrape_effect("dfg", "/wiki/Atomic_Breath", effect_test)
 # print(effect_test)
-# fandom_crawler('https://battle-spirits.fandom.com/wiki/Battle_Spirits_Premium_Diva_BOX:_Diva_Halloween_Festival',
-#                'PB15', True, False, False, None)
+# fandom_crawler('https://battle-spirits.fandom.com/wiki/Promo_Cards/Promo_X-Rares',
+#                '', False, False, None)
