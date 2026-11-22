@@ -1,9 +1,9 @@
-# batosupi-crawler v0.2.0
+# batosupi-crawler v0.3.0
 Image and effect translation crawler + Tabletop Simulator importer for Battle Spirits mod:
 https://steamcommunity.com/sharedfiles/filedetails/?id=1629315994
 
 ## Pre-requisites
-- Python >= 3.7 is recommended 
+- Python >= `3.7` is recommended 
 - Tabletop Simulator (Only for importing to Tabletop Simulator)
 - TS-DeckBuilder.exe, located in `YOUR_TABLETOP_INSTALLATION_FOLDER/Modding/` (Only for importing to Tabletop Simulator)
 
@@ -14,22 +14,30 @@ Download/clone the repo
 ### Setup
 1. In your `~/Documents/My Games/Tabletop Simulator/Saves` folder, copy an existing save `.json` file and rename it as `TS_Save_-.json`, this will be used later. Skip this if you are only downloading images.
 
-### Usage
+### Usage - Downloading Images
 
-TODO: Add effect scraper usage guide
-
-1. Run `main.py`
-2. Choose operation. We need to download the images of the cards first, so input `D` or `d`
-3. Enter a specific link if Fandom link is not simply the generation name appended at the end. Else leave empty and press Enter.
-4. Enter the generation name of the cards you want to import (i.e. BS60, BSC39) and press Enter
+1. Use a Chromium-based browser (Chrome, Edge, etc.) to open the [Bandai TCG Plus](https://www.bandai-tcg-plus.com/card?card_set[]=1053&game_title_id=7&limit=120&offset=0&reverse_card=0) site to extract HAR data
+   1. Select the card pack, i.e. `CB23`
+   2. Open developer tools (F12), then select the network tab
+   3. Reload the page, scroll up and down and ensure all images are loaded
+      4. If there are flip cards, click on the flip icon to ensure both sides are loaded
+      5. Proceed to other numbered pages at the bottom if more cards are there
+   6. Right click, and select `Copy -> Copy all as HARD (sanitized)`
+   7. Paste into har.json
+2. Run `main.py`
+3. Choose operation. We need to download the images of the cards first, so input `H` or `h`
+4. Enter the generation name of the cards you want to import (i.e. `BS60`, `BSC39`) and press Enter
     ```
-    Battle Spirits card importer v0.1.1
-    Download card images from fandom: [D/d]
+    Battle Spirits card importer v0.3.0
+    Download card images (fandom/batspi): [D/d]
+    Download card images (HAR): [H/h]
     Scrape card effects: [S/s]
     Load card names onto cards: [L/l]
-    Choice: d
+    Choice: h
     Please input the card generation abbreviation (i.e. BSC28): CB23
-    Page link (LEAVE EMPTY TO AUTO GENERATE):
+    Processing set 'CB23'...
+    ...
+    Done processing set CB23
     Continue? [(Y/y)/(N/n)]: 
     ```
 
@@ -42,22 +50,22 @@ TODO: Add effect scraper usage guide
     ----                 -------------         ------ ----
     d-----        2022/07/11      2:38                assets
     -a----        2022/07/11      2:40       58510913 BS60-1.png
-    -a----        2022/07/11      2:40           5013 BS60-1.tsdb
     -a----        2022/07/11      2:40       59341844 BS60.png
-    -a----        2022/07/11      2:40           5369 BS60.tsdb
     ```
 
-    (BS60.png contains BS02-X08 to BS60-058, BS60-1.png contains BS60-059 to SD56-RV009)
+    (`BS60.png` contains `BS02-X08` to `BS60-058`, `BS60-1.png` contains `BS60-059` to `SD56-RV009`)
     
 8. Open Tabletop Simulator, load save `-` (The one copied earlier), and load an empty table
 9. Click on Objects > Components > Cards > Custom Deck and import cards, DO NOT CHANGE THE ORDER OF THE CARDS/SHUFFLE: 
-In case of multiple exported images from Deck Builder, have both decks of cards face down, and put first exported image on top of the latter, to retain card order (i.e. BS60 stack on top of BS60-1 stack)
+In case of multiple exported images from Deck Builder, have both decks of cards face down, and put first exported image on top of the latter, to retain card order (i.e. `BS60` stack on top of `BS60-1` stack)
 10. Overwrite the save file (Save 0)
 11. Rerun `main.py` or continue the script, and input `l`/`L` to load card names
 
     ```
     Continue? [(Y/y)/(N/n)]: y
-    Download card images from fandom: [D/d]
+    Download card images (fandom/batspi): [D/d]
+    Download card images (HAR): [H/h]
+    Scrape card effects: [S/s]
     Load card names onto cards: [L/l]
     Choice: l
     Please input the card generation abbreviation (i.e. BSC28): CB23
@@ -70,10 +78,13 @@ In case of multiple exported images from Deck Builder, have both decks of cards 
     Imported
     Continue? [(Y/y)/(N/n)]:
     ```
-
 12. Enter the card generation name
-13. Names will be loaded into "Save -":
-14. Cards are now named and imported
+13. Names will be loaded into `TS_Save_-.json`
+14. Cards are now named and imported, save the cards as a Collection in Tabletop Simulator
+
+
+### Usage - Download effects
+(TODO)
 
 ## Troublshooting
 - `AssertionError` with files_lines != cards:

@@ -3,7 +3,7 @@ import fandom_crawler
 import har_crawler
 import tabletop_name_import
 
-VERSION_NUM = "0.2.0"
+VERSION_NUM = "0.3.0"
 
 print("Battle Spirits card importer v" + VERSION_NUM)
 while True:
